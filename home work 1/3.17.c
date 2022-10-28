@@ -11,11 +11,11 @@ int main(void)
 	{
 	    if (c == 0)
 	    {
-	        printf("equation has infinitely many solutions\n");
+	        printf("equation has an infinite numbers of solutions\n");
 	    }
 	    else
 	    {
-	        printf("equation has not solution\n");
+	        printf("equation has no solution\n");
 	    }
 	}
 	else
@@ -24,6 +24,7 @@ int main(void)
 	}
         0 0;
     }
+//reshenie diskriminanta
     double d = b * b - 4 * a * c;
     if (d == 0)
     {
