@@ -1,0 +1,21 @@
+1) 
+struct point{
+    int x;
+    int y;
+};
+2) 
+struct сpoint{
+    int x;
+    int y;
+    int c;
+};
+3) 
+struct compl{
+    int im;
+    int r;
+};
+4)  
+struct fraction{
+    int p;
+    unsighned short q;
+};
