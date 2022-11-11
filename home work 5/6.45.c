@@ -12,17 +12,17 @@ int count_level_tree(tree tr, int number)
     turn t = NULL;
     puttu(&t, tr);
     for(n = 0; (q != NULL) && (n < number); ++n){
-        tree buff;
+        tree buf;
 
         for(; last > 0; --last){
-            buff = (tree)gettu(&q);
-            if (buff -> left != NULL){
+            buf = (tree)gettu(&q);
+            if (buf->left != NULL){
                 ++next;
-                puttu(&t, buff -> left);
+                puttu(&t, buf->left);
             }
-            if (buff -> right != NULL){
+            if (buf->right != NULL){
                 ++next;
-                puttu(&t, buff -> right);
+                puttu(&t, buf->right);
             }
         }
         if (next == 0){
@@ -38,7 +38,7 @@ int count_level_tree(tree tr, int number)
 void printtu(turn t)
 {
     for(; t!= NULL; t = t -> next){
-        printf("%d ", ((tree)(t -> data)) -> data);
+        printf("%d ", ((tree)(t->data))->data);
     }
     printf("\n");
 }
@@ -49,21 +49,21 @@ void printtr(tree tr)
     turn t = NULL;
     puttu(&t, tr);
     for(;;){
-        tree buff;
+        tree buf;
         for(; last > 0; --last){
-            buff = (tree)gettu(&t);
-            printf("%d ", buff -> data);
-            if (buff -> left != NULL){
+            buf = (tree)gettu(&t);
+            printf("%d ", buf->data);
+            if (buf->left != NULL){
                 ++next;
-                puttu(&t, buff -> left);
+                puttu(&t, buf->left);
             }
-            if (buff -> right != NULL){
+            if (buf->right != NULL){
                 ++next;
-                puttu(&t, buff -> right);
+                puttu(&t, buf->right);
             }
         }
         if (next == 0){
-            printf("%d ", buff -> data);
+            printf("%d ", buf->data);
             break;
         }
         printf("\n");
@@ -78,15 +78,15 @@ void addtr(tree *tr, int value)
 {
     if (*tr == NULL){
         *tr = (tree)malloc(sizeof(tnode));
-        (*tr) -> data = value;
-        (*tr) -> left = NULL;
-        (*tr) -> right = NULL;
+        (*tr)->data = value;
+        (*tr)->left = NULL;
+        (*tr)->right = NULL;
         return;
     }
-    if ((*tr) -> data > value){
-        addtr(&((*tr) -> left), value);
+    if ((*tr)->data > value){
+        addtr(&((*tr)->left), value);
     } else {
-        addtr(&((*tr) -> right), value);
+        addtr(&((*tr)->right), value);
     }
 }
 
@@ -95,8 +95,8 @@ void cleartr(tree *tr)
     if (*tr == NULL){
         return;
     }
-    cleartr(&((*tr) -> left));
-    cleartr(&((*tr) -> right));
+    cleartr(&((*tr)->left));
+    cleartr(&((*tr)->right));
     free(*tr);
 }
 
