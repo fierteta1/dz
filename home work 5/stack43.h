@@ -1,5 +1,5 @@
-#ifndef STACK6P43
-#define STACK6P43
+#ifndef STACK43
+#define STACK43
 #include <stdlib.h>
 
 typedef struct inode {
