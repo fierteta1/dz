@@ -2,8 +2,8 @@
 void pushst(stack *st, void *value)
 {
     stack new = (stack)malloc(sizeof(inode));
-    new -> data = value;
-    new -> next = *st;
+    new->data = value;
+    new->next = *st;
     *st = new;
 }
 void *popst(stack *st)
@@ -12,17 +12,17 @@ void *popst(stack *st)
         return NULL;
     }
     stack first = *st;
-    void *value = first -> data;
-    *st = (*st) -> next;
+    void *value = first->data;
+    *st = (*st)->next;
     free(first);
     return value;
 }
 void clearst(stack *st)
 {
-    stack buff = *st;
-    *st = (*st) -> next;
-    for (; *st != NULL; *st = (*st) -> next){
-        free(buff);
-        buff = *st;
+    stack buf = *st;
+    *st = (*st)->next;
+    for (; *st != NULL; *st = (*st)->next){
+        free(buf);
+        buf = *st;
     }
 }
