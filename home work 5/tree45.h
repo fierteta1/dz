@@ -1,5 +1,5 @@
-#ifndef TREE6P45
-#define TREE6P45
+#ifndef TREE45
+#define TREE45
 #include <stdio.h>
 #include "turn42.h"
 
