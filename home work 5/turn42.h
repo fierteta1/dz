@@ -1,5 +1,5 @@
-#ifndef TURN6P42
-#define TURN6P42
+#ifndef TURN42
+#define TURN42
 #include <stdlib.h>
 
 typedef struct inode {
