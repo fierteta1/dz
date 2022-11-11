@@ -3,14 +3,14 @@
 void puttu(turn *t, void *value)
 {
     turn new = (turn)malloc(sizeof(inode));
-    new -> data = value;
-    new -> next = NULL;
+    new->data = value;
+    new->next = NULL;
     if (*t == NULL){
         *t = new;
         return;
     }
-    for (; (*t) -> next != NULL; t = &((*t) -> next));
-    (*t) -> next = new;
+    for (; (*t)->next != NULL; t = &((*t)->next));
+    (*t)->next = new;
 }
 
 void *gettu(turn *t)
@@ -19,8 +19,8 @@ void *gettu(turn *t)
         return NULL;
     }
     turn fo = *t;
-    void *value = fo -> data;
-    *t = (*t) -> next;
+    void *value = fo->data;
+    *t = (*t)->next;
     free(fo);
     return value;
 }
@@ -28,7 +28,7 @@ void *gettu(turn *t)
 int sizetu(turn t)
 {
     int n = 0;
-    for(; t != NULL; t = t -> next){
+    for(; t != NULL; t = t->next){
         ++n;
     }
     return n;
@@ -38,7 +38,7 @@ void cleartu(turn *t)
 {
     turn del;
     for(del = *t; del != NULL; del = *t){
-        *t = del -> next;
+        *t = del->next;
         free(del);
     }
 }
