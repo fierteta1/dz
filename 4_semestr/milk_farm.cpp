@@ -17,6 +17,10 @@ public:
     virtual ~Animal() {}
 
     virtual void produceSound() const = 0;
+
+    string getName() const {
+        return name;
+    }
 };
 
 // Класс Cow, наследуется от Animal
@@ -133,11 +137,11 @@ public:
 
     // Установка фабрики животных
     void setAnimalFactory(AnimalFactory* factory) {
-        animalFactory= factory;
+        animalFactory = factory;
     }
 
-// Добавление животного на ферму
-void addAnimal(const string& name, const string& gender) {
+    // Добавление животного на ферму
+    void addAnimal(const string& name, const string& gender) {
     if (animalFactory != nullptr) {
         Animal* animal = animalFactory->createAnimal(name, gender);
         animals.push_back(animal);
@@ -166,6 +170,58 @@ void sellProducts() {
     }
     cout << "Общая выручка от продажи: " << totalRevenue << " руб." << endl;
 }
+
+// Вывод информации о количестве животных на ферме
+void printAnimalCount() const {
+    cout << "На ферме сейчас живут " << animals.size() << " животных." << endl;
+}
+
+// Покупка животного
+void buyAnimal() {
+    string animalType;
+    string name;
+    string gender;
+    
+    cout << "Выберите тип животного (корова/коза): ";
+    cin >> animalType;
+    cout << "Введите имя животного: ";
+    cin >> name;
+    cout << "Введите пол животного (мужской/женский): ";
+    cin >> gender;
+    
+    if (animalType == "корова") {
+        setAnimalFactory(new CowFactory());
+    }
+    else if (animalType == "коза") {
+        setAnimalFactory(new GoatFactory());
+    }
+    
+    addAnimal(name, gender);
+    cout << "Животное успешно куплено и добавлено на ферму." << endl;
+}
+
+// Продажа животного
+void sellAnimal() {
+    if (animals.empty()) {
+        cout << "На ферме нет животных для продажи." << endl;
+        return;
+    }
+
+    string name;
+    cout << "Введите имя животного, которое хотите продать: ";
+    cin >> name;
+
+    for (size_t i = 0; i < animals.size(); i++) {
+        if (animals[i]->getName() == name) {
+            delete animals[i];
+            animals.erase(animals.begin() + i);
+            cout << "Животное успешно продано." << endl;
+            return;
+        }
+    }
+
+    cout << "Животное с таким именем не найдено на ферме." << endl;
+}
 };
 
 int main() {
@@ -179,9 +235,42 @@ int main() {
 
     farm.addAnimal("Козлик", "мужской");
     farm.addAnimal("Козочка", "женский");
+int choice;
+    do {
+        cout << "Выберите действие: " << endl;
+        cout << "1. Посмотреть сколько животных на ферме" << endl;
+        cout << "2. Купить животное" << endl;
+        cout << "3. Продать животное" << endl;
+        cout << "4. Произвести продукцию" << endl;
+        cout << "5. Продать продукцию" << endl;
+        cout << "0. Выход" << endl;
+        cout << "Ваш выбор: ";
+        cin >> choice;
 
-    farm.produceProducts();
-    farm.sellProducts();
+        switch (choice) {
+            case 1:
+                farm.printAnimalCount();
+                break;
+            case 2:
+                farm.buyAnimal();
+                break;
+            case 3:
+                farm.sellAnimal();
+                break;
+            case 4:
+                farm.produceProducts();
+                cout << "Продукция успешно произведена." << endl;
+                break;
+            case 5:
+                farm.sellProducts();
+                break;
+            case 0:
+                cout << "Выход из программы." << endl;
+                break;
+            default:
+                cout << "Неверный выбор. Попробуйте еще раз." << endl;
+        }
+    } while (choice != 0);
 
     return 0;
 }
