@@ -118,7 +118,7 @@ private:
     Farm() {
         animalFactory = nullptr;
     }
-
+//пройдем по векторам animals и products, и удаляет каждый объект Animal и Product, освобождая выделенную память.
     ~Farm() {
         delete animalFactory;
         for (Animal* animal : animals) {
@@ -128,7 +128,7 @@ private:
             delete product;
         }
     }
-
+    
 public:
     static Farm& getInstance() {
         static Farm instance;
