@@ -55,22 +55,24 @@ enum type_of_lex {
 };
 
 class Lex {
-	type_of_lex type;
-	int value;
+	type_of_lex type; //объявление приватного члена данных type типа 
+	int value; 
 public:
-	Lex(type_of_lex _type = LEX_NULL, int _value = 0): type(_type), value(_value) {}
-	type_of_lex get_type() const { return type; }
-	int get_value() const { return value; }
-	friend ostream& operator<<(ostream& s, Lex l) {
-		s << '(' << l.type << ',' << l.value << ");";
-		return s;
+	Lex(type_of_lex _type = LEX_NULL, int _value = 0): type(_type), value(_value) {} // конструктор класса Lex. Принимает два аргумента: _type (тип лексемы) и _value (значение лексемы). Если значения аргументов не указаны при создании объекта класса, то используются значения по умолчанию LEX_NULL и 0 соответственно. 
+	//Конструктор инициализирует члены данных type и value значениями _type и _value соответственно.
+	type_of_lex get_type() const { return type; } //метод класса get_type(), который возвращает тип лексемы. 
+	//Он объявлен как константный метод (const), что означает, что он не изменяет состояние объекта.
+	int get_value() const { return value; } //метод класса get_value(), который возвращает значение лексемы. Он также объявлен как константный метод (const).
+	friend ostream& operator<<(ostream& s, Lex l) { //перегруженный оператор вывода (operator<<), объявлен как друг класса. Он принимает два аргумента: ссылку на объект ostream (s), который представляет поток вывода, и объект класса Lex (l), который будет выводиться.
+		s << '(' << l.type << ',' << l.value << ");"; //выполняет последовательный вывод в поток s. Сначала выводится символ '(', затем значение l.type, затем символ ',', затем значение l.value и, наконец, символ ');'. Результат вывода передается обратно в поток s.
+		return s; //возвращает поток s после завершения оператора вывода.
 	}
 };
 
 class Ident {
 	string name;
-	bool declare;
-	type_of_lex type;
+	bool declare; //объявление приватного булевого члена данных declare, который указывает, был ли идентификатор объявлен.
+	type_of_lex type; 
 	bool assign;
 	int value;
 
@@ -78,7 +80,7 @@ class Ident {
 	bool label;
 	int address;
 public:
-	Ident(const string str = "\0") {
+	Ident(const string str = "\0") { //конструктор класса Ident. Принимает один аргумент str, который представляет имя идентификатора. По умолчанию аргумент равен пустой строке "\0". В конструкторе инициализируются члены данных: declare, assign, label устанавливаются в false, идентификатору присваивается значение -1, адреc устанавливается в -1. Если переданное имя str не пустое, то оно присваивается члену данных name.
 		declare = false;
 		assign = false;
 		label = false;
@@ -90,7 +92,7 @@ public:
 	}
 
 	string get_name() { return name; }
-	bool get_declare() { return declare; }
+	bool get_declare() { return declare; } //метод класса get_declare(), который возвращает значение, указывающее, был ли идентификатор объявлен.
 	type_of_lex get_type() { return type; }
 	bool get_assign() { return assign; }
 	int get_value() { return value; }
