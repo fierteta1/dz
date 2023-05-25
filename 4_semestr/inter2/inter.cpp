@@ -1278,36 +1278,37 @@ void Executer::execute(vector<Lex> &poliz) {
 
 	cout << "BEGINNING EXECUTION... " << endl;
 
-	while (index < size) {
-		curr = poliz[index];
-		switch(curr.get_type()) {
-			case POLIZ_LABEL:
+	while (index < size) { //Начало цикла while. Выполнение цикла будет продолжаться, пока index меньше size.
+		curr = poliz[index]; //Присваивание переменной curr значения элемента poliz с индексом index. Этот элемент представляет текущую инструкцию для выполнения.
+		switch(curr.get_type()) { //Начало конструкции switch, которая проверяет тип текущей инструкции.
+			case POLIZ_LABEL: //В случае, если тип инструкции - POLIZ_LABEL, значение инструкции помещается в стек args.
 				args.push(curr.get_value());
 				break;
 
-			case POLIZ_ADDRESS:
+			case POLIZ_ADDRESS: //В случае, если тип инструкции - POLIZ_ADDRESS, значение инструкции помещается в стек args, а соответствующий тип данных извлекается из таблицы и помещается в стек types.
 				args.push(curr.get_value());
 				types.push(TID[curr.get_value()].get_type());
 				break;
 
-			case LEX_NUM:
+			case LEX_NUM: //В случае, если тип инструкции - LEX_NUM, значение инструкции помещается в стек args, а тип данных LEX_INT помещается в стек types.
 				args.push(curr.get_value());
 				types.push(LEX_INT);
 				break;
 
-			case LEX_TRUE: case LEX_FALSE:
+			case LEX_TRUE: case LEX_FALSE: //В случае, если тип инструкции - LEX_TRUE или LEX_FALSE, значение инструкции помещается в стек args, а тип данных LEX_BOOL помещается в стек types.
 				args.push(curr.get_value());
 				types.push(LEX_BOOL);
 				break;
 
-			case LEX_STR_CONST:
+			case LEX_STR_CONST: //В случае, если тип инструкции - LEX_STR_CONST, соответствующая строковая константа извлекается из таблицы и помещается в стек str_consts, а тип данных LEX_STRING помещается в стек types.
 				str_consts.push(TSTRC[curr.get_value()]);
 				types.push(LEX_STRING);
 				break;
 
 			case LEX_ID:
-				i = curr.get_value();
+				i = curr.get_value(); //Значение инструкции i извлекается.
 				if (TID[i].get_assign()) {
+//Если переменная с идентификатором i имеет присвоенное значение, тип данных переменной помещается в стек types, а значение переменной или строковая константа, если тип данных LEX_STRING, помещается в соответствующий стек args или str_consts.
 					types.push(TID[i].get_type());
 					if (TID[i].get_type() == LEX_STRING) {
 						str_consts.push(TID[i].get_str_value());
@@ -1319,84 +1320,84 @@ void Executer::execute(vector<Lex> &poliz) {
 				}
 				break;
 
-			case LEX_NOT:
+			case LEX_NOT: //В случае, если тип инструкции - LEX_NOT, значение извлекается из стека args, инвертируется и помещается обратно в стек args.
 				extract(args, i);
 				args.push(!i);
 				break;
 
-			case LEX_OR:
+			case LEX_OR: //В случае, если тип инструкции - LEX_OR, из стека args извлекаются два значения, объединяются операцией логического ИЛИ и результат помещается обратно в стек args. Тип данных извлекается из стека types и удаляется.
 				extract(args, i);
 				extract(args, j);
 				args.push(j || i);
 				types.pop();
 				break;
 
-			case LEX_AND:
+			case LEX_AND: //В случае, если тип инструкции - LEX_AND, из стека args извлекаются два значения, объединяются операцией логического И и результат помещается обратно в стек args. Тип данных извлекается из стека types и удаляется.
 				extract(args, i);
 				extract(args, j);
 				args.push(j && i);
 				types.pop();
 				break;
 
-			case LEX_PLUS:
-				if (types.top() == LEX_STRING) {
+			case LEX_PLUS: //
+				if (types.top() == LEX_STRING) {//Если тип данных на вершине стека types - LEX_STRING, из стека str_consts извлекаются две строки a и b, которые конкатенируются и результат помещается обратно в стек str_consts.
 					extract(str_consts, a);
 					extract(str_consts, b);
 					str_consts.push(b + a);
-				} else {
+				} else { //В противном случае из стека args извлекаются два значения i и j, которые складываются, и результат помещается обратно в стек args.
 					extract(args, i);
 					extract(args, j);
 					args.push(j + i);
 				}
-				types.pop();
+				types.pop(); //Тип данных извлекается из стека types и удаляется.
 				break;
 
-			case LEX_MINUS:
+			case LEX_MINUS: //В случае, если тип инструкции - LEX_MINUS, из стека args извлекаются два значения i и j, которые вычитаются, и результат помещается обратно в стек args. Тип данных извлекается из стека types и удаляется.
 				extract(args, i);
 				extract(args, j);
 				args.push(j - i);
 				types.pop();
 				break;
 
-			case LEX_MULT:
+			case LEX_MULT: //В случае, если тип инструкции - LEX_MULT, из стека args извлекаются два значения i и j, которые умножаются, и результат помещается обратно в стек args. Тип данных извлекается из стека types и удаляется.
 				extract(args, i);
 				extract(args, j);
 				args.push(j * i);
 				types.pop();
 				break;
 
-			case LEX_SLASH:
-				extract(args, i);
+			case LEX_SLASH: // В случае, если тип инструкции - LEX_SLASH, выполняются следующие действия:
+				extract(args, i); //Из стека args извлекаются два значения i и j
 				extract(args, j);
-				types.pop();
-				if (i) {
+				types.pop(); //Тип данных извлекается из стека types и удаляется.
+				if (i) { //Если i не равно 0, результат от деления j на i помещается в стек args.
 					args.push(j / i);
-				} else {
+				} else { //В противном случае вызывается метод exec_error(), который выводит сообщение об ошибке и прерывает выполнение программы.
 					exec_error("DIVIDE BY ZERO");
 				}
 				break;
 
-			case LEX_UN_MINUS:
+			case LEX_UN_MINUS: //В случае, если тип инструкции - LEX_UN_MINUS, из стека args извлекается значение i, умножается на -1 и результат помещается обратно в стек args.
 				extract(args, i);
 				args.push(-1 * i);
 				break;
 
 			case LEX_EQ:
-				if (types.top() == LEX_STRING) {
+				if (types.top() == LEX_STRING) { //Если тип данных на вершине стека types - LEX_STRING, из стека str_consts извлекаются две строки a и b, которые сравниваются на равенство, и результат помещается обратно в стек args.
 					extract(str_consts, a);
 					extract(str_consts, b);
 					args.push(b == a);
-				} else {
+				} else { //В противном случае из стека args извлекаются два значения i и j, которые сравниваются на равенство, и результат помещается обратно в стек args.
 					extract(args, i);
 					extract(args, j);
 					args.push(j == i);
 				}
-				types.pop();
+				types.pop(); //Тип данных извлекается из стека types, удаляется и заменяется на LEX_BOOL.
 				types.pop();
 				types.push(LEX_BOOL);
 				break;
 
-			case LEX_NEQ:
+			case LEX_NEQ: //В случае, если тип инструкции - LEX_NEQ, выполняются аналогичные действия как в LEX_EQ, за исключением того, что результатом будет логическое неравенство.
 				if (types.top() == LEX_STRING) {
 					extract(str_consts, a);
 					extract(str_consts, b);
@@ -1411,7 +1412,7 @@ void Executer::execute(vector<Lex> &poliz) {
 				types.push(LEX_BOOL);
 				break;
 
-			case LEX_LSS:
+			case LEX_LSS: //В случае, если тип инструкции - LEX_LSS, выполняются аналогичные действия как в LEX_EQ, за исключением того, что результатом будет логическое отношение "меньше".
 				if (types.top() == LEX_STRING) {
 					extract(str_consts, a);
 					extract(str_consts, b);
@@ -1426,7 +1427,7 @@ void Executer::execute(vector<Lex> &poliz) {
 				types.push(LEX_BOOL);
 				break;
 
-			case LEX_GRT:
+			case LEX_GRT: //В случае, если тип инструкции - LEX_GRT, выполняются аналогичные действия как в LEX_EQ, за исключением того, что результатом будет логическое отношение "больше".
 				if (types.top() == LEX_STRING) {
 					extract(str_consts, a);
 					extract(str_consts, b);
@@ -1441,7 +1442,7 @@ void Executer::execute(vector<Lex> &poliz) {
 				types.push(LEX_BOOL);
 				break;
 
-			case LEX_LEQ:
+			case LEX_LEQ: //В случае, если тип инструкции - LEX_LEQ, выполняются аналогичные действия как в LEX_EQ, за исключением того, что результатом будет логическое отношение "меньше или равно".
 				extract(args, i);
 				extract(args, j);
 				args.push(j <= i);
@@ -1450,116 +1451,116 @@ void Executer::execute(vector<Lex> &poliz) {
 				types.push(LEX_BOOL);
 				break;
 
-			case LEX_GEQ:
+			case LEX_GEQ: //В случае, если тип инструкции - LEX_GEQ, выполняются аналогичные действия как в LEX_EQ, за исключением того, что результатом будет логическое отношение "больше или равно".
 				extract(args, i);
-				extract(args, j);
-				args.push(j >= i);
+				extract(args, j); 
+				args.push(j >= i); 
 				types.pop();
-				types.pop();
+				types.pop(); 
 				types.push(LEX_BOOL);
 				break;
 
-			case LEX_ASSIGN:
-				types.pop();
-				switch(types.top()) {
+			case LEX_ASSIGN: // Этот блок кода выполняется, когда текущий элемент в poliz является оператором присваивания (=).
+				types.pop(); //Извлекает тип данных, находящийся на вершине стека types, и удаляет его, так как мы уже знаем тип данных, который будет присваиваться переменной.
+				switch(types.top()) { //Этот блок кода основан на типе данных, который находится на вершине стека types.
 					case LEX_STRING:
-						extract(str_consts, a);
-						extract(args, j);
-						TID[j].put_value(a);
+						extract(str_consts, a); //Извлекает строковое значение из стека str_consts и сохраняет его в переменной a.
+						extract(args, j); //Извлекает целочисленное значение из стека args и сохраняет его в переменной j
+						TID[j].put_value(a); //Присваивает переменной с идентификатором j значение a (строковое значение).
 						break;
 
-					case LEX_INT:
-						extract(args, i);
-						extract(args, j);
-						TID[j].put_value(i);
+					case LEX_INT: //тип данных является целочисленным (LEX_INT)
+						extract(args, i); //Извлекает целочисленное значение из стека args и сохраняет его в переменной i
+						extract(args, j); //Извлекает еще одно целочисленное значение из стека args и сохраняет его в переменной j.
+						TID[j].put_value(i); //Присваивает переменной с идентификатором j значение i (целое число).
 						break;
 
-					case LEX_BOOL:
-						extract(args, i);
-						extract(args, j);
-						if (i) {
+					case LEX_BOOL: // Если тип данных является логическим (LEX_BOOL), 
+						extract(args, i); //Извлекает целочисленное значение из стека args и сохраняет его в переменной i.
+						extract(args, j); //Извлекает еще одно целочисленное значение из стека args и сохраняет его в переменной j.
+						if (i) { //Если значение i ненулевое, устанавливает его равным 1.
 							i = 1;
 						}
-						TID[j].put_value(i);
+						TID[j].put_value(i); //Присваивает переменной с идентификатором j значение i (логическое значение).
 						break;
 
 					default:
 						break;
 				}
-				types.pop();
-				TID[j].put_assign();
+				types.pop(); //Извлекает тип данных из стека types и удаляет его. Это выполняется для очистки стека types от типа данных, который был использован в операторе присваивания.
+				TID[j].put_assign(); //Устанавливает флаг присваивания для переменной с идентификатором j.
 				break;
 
-			case LEX_READ:
-				extract(args, i);
-				switch(types.top()) {
-					case LEX_STRING:
-						cout <<"\nENTER STRING VALUE FOR " << TID[i].get_name() << ": ";
-						cin >> a;
+			case LEX_READ: //Этот блок кода выполняется, когда текущий элемент в poliz является оператором чтения (read).
+				extract(args, i); // Извлекает целочисленное значение из стека args и сохраняет его в переменной i.
+				switch(types.top()) { //Этот блок кода основан на типе данных, который находится на вершине стека types.
+					case LEX_STRING: //Если тип данных является строковым (LEX_STRING), 
+						cout <<"\nENTER STRING VALUE FOR " << TID[i].get_name() << ": "; //Выводит сообщение с просьбой ввести строковое значение для переменной TID[i].get_name().
+						cin >> a; //Считывает введенное пользователем строковое значение и сохраняет его в переменной a.
 						TID[i].put_value(a);
 						break;
 
 					case LEX_INT:
 						cout << "\nENTER INT VALUE FOR " << TID[i].get_name() << ": ";
-						cin >> j;
-						TID[i].put_value(j);
+						cin >> j; //Считывает введенное пользователем целочисленное значение и сохраняет его в переменной j.
+						TID[i].put_value(j); //Присваивает переменной с идентификатором i значение j (целое число).
 						break;
 
 					case LEX_BOOL:
-						j = 0;
-						cout << "ENTER BOOL VALUE FOR " << TID[i].get_name() << ": ";
-						cin >> b;
-						if (b == "true" || (isdigit(b[0]) && b[0] - '0') ||
+						j = 0; //Инициализирует переменную j значением 0.
+						cout << "ENTER BOOL VALUE FOR " << TID[i].get_name() << ": "; //Выводит сообщение с просьбой ввести логическое значение для переменной TID[i].get_name().
+						cin >> b; //Считывает введенное пользователем значение и сохраняет его в переменной b (как строку).
+						if (b == "true" || (isdigit(b[0]) && b[0] - '0') || //Проверяет условие, что введенное значение является строкой "true" или является числом (в виде строки), чтобы считать его как логическое значение.
 							((b[0] == '+' || b[0] == '-') && isdigit(b[1]) && b[1] - '0')) {
-							j = 1;
+							j = 1; //Если условие истинно, то j устанавливается в 1.
 						}
-						TID[i].put_value(j);
+						TID[i].put_value(j); //Присваивает переменной с идентификатором i значение j (логическое значение).
 						break;
 
 					default:
 						break;
 				}
-				types.pop();
-				TID[i].put_assign();
+				types.pop(); //Извлекает тип данных из стека types и удаляет его. Это выполняется для очистки стека types от типа данных, который был использован в операторе чтения.
+				TID[i].put_assign(); //Устанавливает флаг присваивания для переменной с идентификатором i.
 				break;
 
-			case LEX_WRITE:
-				write();
+			case LEX_WRITE: //Этот блок кода выполняется, когда текущий элемент в poliz является оператором вывода (write).
+				write(); //Вызывает функцию write(), которая отвечает за вывод значений из стека args на экран.
 				break;
 
-			case POLIZ_GO:
-				extract(args, i);
-				index = i - 1;
+			case POLIZ_GO: //Этот блок кода выполняется, когда текущий элемент в poliz является оператором безусловного перехода (go).
+				extract(args, i); //Извлекает целочисленное значение из стека args и сохраняет его в переменной i.
+				index = i - 1; //Устанавливает значение переменной index равным i - 1, чтобы выполнение программы перешло к указанному индексу в poliz.
 				break;
 
-			case POLIZ_FGO:
-				extract(args, i);
-				extract(args, j);
-				types.pop();
-				if (!j) {
+			case POLIZ_FGO: // Этот блок кода выполняется, когда текущий элемент в poliz является оператором условного перехода (fgo).
+				extract(args, i); //Извлекает целочисленное значение из стека args и сохраняет его в переменной i.
+				extract(args, j); 
+				types.pop(); // Извлекает тип данных из стека types и удаляет его. Это выполняется для очистки стека types от типа данных, который был использован в операторе условного перехода.
+				if (!j) { //Если j равно нулю, то значение переменной index устанавливается в i - 1, что приводит к переходу выполнения программы к указанному индексу в poliz.
 					index = i - 1;
 				}
 				break;
-
-			default:
+ 
+			default: //тот блок кода выполняется, если текущий элемент в poliz не соответствует ни одному из предыдущих case.
 				break;
 		}
 
-		index++;
+		index++; //Увеличивает значение переменной index на 1, чтобы перейти к следующему оператору в poliz.
 	}
 	cout << "\nEXECUTION COMPLETE\n";
 }
 
 /* INTERPRETER */
 class Interpreter {
-	Parser pars;
+	Parser pars; //Он имеет два приватных члена: Parser pars (объект класса Parser) и Executer exec (объект класса Executer).
 	Executer exec;
-public:
+public: // имеет публичный конструктор Interpreter(const string _prog_name), который принимает имя программы в качестве аргумента и инициализирует объект pars класса Parser с этим именем.
 	Interpreter(const string _prog_name): pars(_prog_name) {}
 
 	void interpret();
 };
-
+//публичный метод класса Interpreter, который выполняет интерпретацию программы. Он вызывает метод analyse() у объекта pars класса Parser для анализа программы, а затем вызывает метод execute() у объекта exec класса Executer, передавая ему Poliz (полученный после анализа программы).
 void Interpreter::interpret() {
 	pars.analyse();
 	exec.execute(pars.Poliz);
@@ -1572,8 +1573,8 @@ int main() {
 	cout << "ENTER program name: ";
 	cin >> program;
 
-	Interpreter Interpret(program);
-	Interpret.interpret();
+	Interpreter Interpret(program); //создается объект Interpret класса Interpreter, передавая ему имя программы в конструкторе.
+	Interpret.interpret(); //вызывается метод interpret() у объекта Interpret, который запускает интерпретацию программы.
 
 	return 0;
 }
