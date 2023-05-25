@@ -65,40 +65,40 @@ public:
 	int get_value() const { return value; } //метод класса get_value(). Он также объявлен как константный метод (const).
 	friend ostream& operator<<(ostream& s, Lex l) { //перегруженный оператор вывода (operator<<), объявлен как друг класса. Он принимает два аргумента: ссылку на объект ostream (s), который представляет поток вывода, и объект класса Lex (l), который будет выводиться.
 		s << '(' << l.type << ',' << l.value << ");"; //выполняет последовательный вывод в поток s. Сначала выводится символ '(', затем значение l.type, затем символ ',', затем значение l.value и, наконец, символ ');'. Результат вывода передается обратно в поток s.
-		return s; //возвращает поток s после завершения оператора вывода.
+		return s; 
 	}
 };
 
-class Ident {
+class Ident { //абстракция для работы с идентификаторами в программе
 	string name;
 	bool declare; //объявление приватного булевого члена данных declare, который указывает, был ли идентификатор объявлен.
 	type_of_lex type; 
-	bool assign;
+	bool assign; //будет использоваться для указания, было ли идентификатору присвоено значение.
 	int value;
 
 	string str_value;
 	bool label;
 	int address;
 public:
-	Ident(const string str = "\0") { //конструктор класса Ident. Принимает один аргумент str, который представляет имя идентификатора. По умолчанию аргумент равен пустой строке "\0". В конструкторе инициализируются члены данных: declare, assign, label устанавливаются в false, идентификатору присваивается значение -1, адреc устанавливается в -1. Если переданное имя str не пустое, то оно присваивается члену данных name.
+	Ident(const string str = "\0") { //конструктор класса Ident. Принимает один аргумент str. По умолчанию аргумент равен пустой строке "\0".
 		declare = false;
 		assign = false;
 		label = false;
-		if (!str.empty()) {
+		if (!str.empty()) { //Если переданное имя str не пустое, то оно присваивается члену данных name.
 			name = str;
 		}
-			value = -1;
-			address = -1;
+			value = -1; //идентификатору присваивается значение -1
+			address = -1; //адреc устанавливается в -1
 	}
-
-	string get_name() { return name; }
-	bool get_declare() { return declare; } //метод класса get_declare(), который возвращает значение, указывающее, был ли идентификатор объявлен.
-	type_of_lex get_type() { return type; }
-	bool get_assign() { return assign; }
-	int get_value() { return value; }
-	string get_str_value() { return str_value; }
-	bool get_label() { return label; }
-	int get_address() { return address; }
+//предоставляет набор публичных методов для получения и установки значений различных свойств идентификатора
+	string get_name() { return name; } //Метод возвращает значение члена данных name, которое представляет имя идентификатора.
+	bool get_declare() { return declare; } //м который возвращает значение, указывающее, был ли идентификатор объявлен.
+	type_of_lex get_type() { return type; } //м которое представляет тип идентификатора.
+	bool get_assign() { return assign; } //м указывающее, было ли идентификатору присвоено значение.
+	int get_value() { return value; } //м которое представляет числовое значение идентификатора.
+	string get_str_value() { return str_value; } //м которое представляет строковое значение идентификатора.
+	bool get_label() { return label; } //м указывающее, является ли идентификатор меткой.
+	int get_address() { return address; } //м которое представляет адрес идентификатора.
 
 	void put_name(const string _name) { name = _name; }
 	void put_declare() { declare = true; }
@@ -108,66 +108,74 @@ public:
 	void put_value(string _str_value) { str_value = _str_value; }
 	void put_label() { label = true; }
 	void put_address(int _address) { address = _address; }
-};
+}; // Методы get_* возвращают значения соответствующих членов данных, а методы put_* изменяют значения этих членов данных.
 
 class Scanner {
-	enum state { H, IDENT, NUM, STR, COM, COM_STR, DELIM, NEQ, FIN };
-	state CS;
-	static string TW[];
-	static type_of_lex words[];
-	static string TD[];
-	static type_of_lex dlms[];
-	FILE *fp;
+	enum state { H, IDENT, NUM, STR, COM, COM_STR, DELIM, NEQ, FIN }; 	//H: Начальное состояние (Idle).
+										//IDENT: Распознавание идентификатора.
+										//NUM: Распознавание числа.
+										//STR: Распознавание строки.
+										//COM: Распознавание комментария.
+										//COM_STR: Распознавание комментария внутри строки.
+										//DELIM: Распознавание разделителя.
+										//NEQ: Распознавание несоответствия (неравенства).
+										//FIN: Завершающее состояние.
+	state CS; //CS будет использоваться для хранения текущего состояния сканера.
+	static string TW[]; // статический массив будет использоваться для хранения зарезервированных слов (ключевых слов).
+	static type_of_lex words[]; //Массив будет использоваться для хранения типов лексем, соответствующих зарезервированным словам.
+	static string TD[]; //Массив будет использоваться для хранения разделителей.
+	static type_of_lex dlms[]; //Массив будет использоваться для хранения типов лексем, соответствующих разделителям.
+	FILE *fp; //Указатель будет использоваться для работы с файлом, из которого происходит сканирование
 	char c;
-	string buf;												// буфер для строки
-	int buf_size = 255;										// max размер строки
-	int buf_top;											// последний !NULL символ в buf
+	string buf;				// буфер для строки
+	int buf_size = 255;			// max размер строки
+	int buf_top;				// последний !NULL символ в buf. для отслеживания текущего индекса верхней границы буфера.
 
-	void program_file(const string str) {					// open file
-		fp = fopen(str.c_str(), "r");
+	void program_file(const string str) {					//Функция предназначена для открытия файла
+		fp = fopen(str.c_str(), "r");	//"r" указывает режим чтения файла.открывает файл и сохраняет указатель на него в переменной fp.
 		return;
 	}
 
-	void clear() {											// clear buf
-		buf_top = 0;
-		buf.clear();
+	void clear() {											//очистка буфкра
+		buf_top = 0;	//обнуляя индекс верхней границы буфера.
+		buf.clear();	//очищает содержимое переменной buf, удаляя все символы из строки.
 		return;
 	}
 
-	void add() {											// new elem -> buf
-		buf.push_back(c);
-		buf_top++;
+	void add() {								//Функция предназначена для добавления нового элемента в буфер.
+		buf.push_back(c);	//добавляет текущий символ c в конец строки buf.
+		buf_top++;		//увеличивает значение переменной buf_top на 1, обновляя индекс верхней границы буфера.
 		return;
 	}
 
-	int look(const string &buf, const string list[]) {		// str in buf in the list of lexems? - check
+	int look(const string &buf, const string list[]) {//проверяет наличие строки в списке. для проверки наличия строки buf в списке лексем list
 		int i = 0;
-		while (!list[i].empty()) {
-			if (buf == list[i]) {
-				return i + 1;
+		while (!list[i].empty()) { //выполняет цикл до тех пор, пока элемент list[i] не является пустой строкой.
+			if (buf == list[i]) { //проверяет, равна ли строка buf элементу list[i].
+				return i + 1; //возвращает значение i + 1, указывая на позицию лексемы в списке (1-based indexing).
 			}
-			i++;
+			i++; //увеличивает значение переменной i на 1 для перехода к следующему элементу списка.
 		}
 		return 0;
 	}
 
-	void gc() {												// new symb
-		c = fgetc(fp);
+	void gc() {	//получает новый символ из файла
+		c = fgetc(fp); // считывает следующий символ из файла, на который указывает fp, и сохраняет его в переменной c
 		return;
 	}
 
-	void un_gc() {											// return one symb
-		ungetc(c, fp);
+	void un_gc() {	//возвращает символ назад в файл
+		ungetc(c, fp); //возвращает символ c в файл, на который указывает fp.
 		return;
 	}
 
-	void lex_error(string error) {							// lex_errors analyse
-		try {
-			throw error;
+	void lex_error(string error) {	//Функция предназначена для обработки ошибок лексического анализа.
+		try { //начинает блок обработки исключений.
+			throw error; //генерирует исключение с сообщением об ошибке error.
 		}
-		catch (string s) {
-			string err;
-			switch(s[0]) {
+		catch (string s) { //перехватывает исключение типа string и выполняет код внутри блока catch для обработки ошибки.
+			string err; //объявляет переменную err типа string, которая будет содержать сообщение об ошибке.
+			switch(s[0]) { //начинает проверку значения первого символа строки s.
 				case '\\':
 					err = "UNKNOWN ESC SEQ: " + s;
 					break;
@@ -182,106 +190,22 @@ class Scanner {
 					break;
 			}
 			cerr << "LEXICALL ERROR: " << err << endl;
-			exit(1);
+			exit(1); //прерывает выполнение программы с кодом завершения 1, указывающим на наличие ошибки.
 		}
 	}
 
 public:
-	Scanner(string program) {
-		program_file(program);
-		CS = H;
-		gc();
+	Scanner(string program) { //В конструкторе выполняются необходимые инициализации при создании объекта класса.
+		program_file(program); //вызывает функцию program_file() для открытия файла с программой.
+		CS = H; //устанавливает значение перечисления CS в начальное состояние H.
+		gc();  //вызывает функцию gc() для получения первого символа из файла.
 	}
-	~Scanner() { fclose(fp); }
-
-	Lex get_lex();
+	~Scanner() { fclose(fp); } 	//Деструктор предназначен для освобождения ресурсов, связанных с объектом класса Scanner
+					//fclose(fp); закрывает файл, на который указывает указатель fp.
+	Lex get_lex(); //Функция будет реализована вне класса и предназначена для получения следующей лексемы.
 };
 
-/*
-string Scanner::TW[] = {
-	"",
-	"program",
-	"int",
-	"string",
-	"bool",
-	"true",
-	"false",
-	"if",
-	"else",
-	"for",
-	"while",
-	"read",
-	"write",
-	"and",
-	"not",
-	"or",
-};
-
-type_of_lex Scanner::words[] = {
-	LEX_PROGRAM,
-	LEX_INT,
-	LEX_STRING,
-	LEX_BOOL,
-	LEX_TRUE,
-	LEX_FALSE,
-	LEX_IF,
-	LEX_ELSE,
-	LEX_FOR,
-	LEX_WHILE,
-	LEX_READ,
-	LEX_WRITE,
-	LEX_AND,
-	LEX_NOT,
-	LEX_OR,
-	LEX_FIN
-};
-
-string Scanner::TD[] = {
-	"(",
-	")",
-	"{",
-	"}",
-	"\"",
-	",",
-	":",
-	";",
-	"=",
-	"+",
-	"-",
-	"*",
-	"/",
-	"==",
-	">",
-	"<",
-	">=",
-	"<=",
-	"!="
-};
-
-type_of_lex Scanner::dlms[] = {
-	LEX_LPAREN,
-	LEX_RPAREN,
-	LEX_LBRACE,
-	LEX_RBRACE,
-	LEX_QUOTE,
-	LEX_COMMA,
-	LEX_COLON,
-	LEX_SEMICOLON,
-	LEX_ASSIGN,
-	LEX_PLUS,
-	LEX_MINUS,
-	LEX_MULT,
-	LEX_SLASH,
-	LEX_EQ,
-	LEX_GRT,
-	LEX_LSS,
-	LEX_GEQ,
-	LEX_LEQ,
-	LEX_NEQ
-};
-*/
-
-string Scanner::TW[] = {
+string Scanner::TW[] = { //Массив TW содержит зарезервированные слова (ключевые слова) языка программирования.
 	"and",
 	"bool",
 	"else",
@@ -299,7 +223,7 @@ string Scanner::TW[] = {
 	"write",
 };
 
-type_of_lex Scanner::words[] = {
+type_of_lex Scanner::words[] = { //статический массив words содержит соответствующие типы лексем для каждого зарезервированного слова из массива TW.
 	LEX_AND,		// 1
 	LEX_BOOL,		// 2
 	LEX_ELSE,		// 3
@@ -309,7 +233,7 @@ type_of_lex Scanner::words[] = {
 	LEX_INT,		// 7
 	LEX_NOT,		// 8
 	LEX_OR,			// 9
-	LEX_PROGRAM,	// 10
+	LEX_PROGRAM,		// 10
 	LEX_READ,		// 11
 	LEX_STRING,		// 12
 	LEX_TRUE,		// 13
@@ -318,7 +242,7 @@ type_of_lex Scanner::words[] = {
 	LEX_FIN,		// 16
 };
 
-string Scanner::TD[] = {
+string Scanner::TD[] = { //Массив TD содержит разделители (лексемы-разделители) языка программирования.
 	"{",
 	"}",
 	"\"",
@@ -340,11 +264,11 @@ string Scanner::TD[] = {
 	"!=",
 };
 
-type_of_lex Scanner::dlms[] = {
+type_of_lex Scanner::dlms[] = { //Массив dlms содержит соответствующие типы лексем для каждого разделителя из массива TD.
 	LEX_LBRACE,			// 1
 	LEX_RBRACE,			// 2
 	LEX_QUOTE,			// 3
-	LEX_SEMICOLON,		// 4
+	LEX_SEMICOLON,			// 4
 	LEX_COMMA,			// 5
 	LEX_COLON,			// 6
 	LEX_ASSIGN,			// 7
@@ -362,21 +286,21 @@ type_of_lex Scanner::dlms[] = {
 	LEX_NEQ,			// 19
 };
 
-vector<Ident> TID;												// Table of Ident
-vector<string> TSTRC;											// Table of STR CONST
+vector<Ident> TID;						//для хранения идентификаторов.
+vector<string> TSTRC;						//для хранения строковых констант.
 
-int put(const string &buf) {									// Find in TID and fill
+int put(const string &buf) { //Определение функции put, которая выполняет поиск идентификатора в векторе TID и заполняет его, если он не найден.
 //	vector<Ident>::iterator iter;
-	for (auto iter = TID.begin(); iter != TID.end(); iter++) {
-		if (buf == iter->get_name()) {
+	for (auto iter = TID.begin(); iter != TID.end(); iter++) { //происходит поиск идентификатора в векторе TID с использованием итератора iter.
+		if (buf == iter->get_name()) { //Если идентификатор найден (сравнивается с именем в каждом объекте Ident), возвращается позиция идентификатора в векторе TID.
 			return iter - TID.begin();
 		}
 	}
-	TID.push_back(Ident(buf));
-	return TID.size() - 1;										// return num of Ident in TID
+	TID.push_back(Ident(buf));	//Если идентификатор не найден, создается новый объект Ident с именем buf и добавляется в конец вектора TID.
+	return TID.size() - 1;		//Возвращается позиция нового идентификатора в векторе TID.
 }
 
-int put_string(const string &buf) {								// To zhe samoe, no s str_const
+int put_string(const string &buf) {	//которая выполняет поиск строки в векторе TSTRC и добавляет её, если она не найдена.
 //	vector<string>::iterator iter;
 	for (auto iter = TSTRC.begin(); iter != TSTRC.end(); iter++) {
 		if (buf == *iter) {
@@ -387,97 +311,97 @@ int put_string(const string &buf) {								// To zhe samoe, no s str_const
 	return TSTRC.size() - 1;
 }
 
-Lex Scanner::get_lex() {
-	clear();
-	int d;
-	int tmp; 										// lexeme value
-	do {
-		switch(CS) {								// H, IDENT, NUM, STR, COM, COM_STR, DELIM, NEQ, FIN
-			case H:
-				if (c == ' ' || c == '\n' || c == '\r' || c == '\t') {
+Lex Scanner::get_lex() { //Определение функции get_lex, которая возвращает следующую лексему из входного файла
+	clear(); //для очистки буфера (buf) и сброса его размера (buf_top) в 0.
+	int d; //Объявление переменной d для хранения числового значения лексемы типа NUM (число).
+	int tmp; //Объявление переменной tmp для временного хранения значения лексемы.
+	do { //Начало цикла do-while, который будет выполняться, пока не будет выполнено указанное условие.
+		switch(CS) {	//для обработки различных состояний (значений переменной CS) сканнера. H, IDENT, NUM, STR, COM, COM_STR, DELIM, NEQ, FIN
+			case H: //(начальное состояние).
+				if (c == ' ' || c == '\n' || c == '\r' || c == '\t') { //Проверка, является ли текущий символ c пробелом, символом новой строки или табуляцией.
+					gc(); //Если это так, символ считывается и пропускается, переходя к следующему символу.
+				} else if (isalpha(c)) { //Проверка, является ли текущий символ c буквой.
+					clear(); //Если это так, вызывается метод clear() для очистки буфера.
+					add(); //Затем текущий символ добавляется в буфер с помощью метода add().
+					gc(); 
+					CS = IDENT; //Далее, символ считывается и переходит в состояние IDENT.
+				} else if (isdigit(c)){ //Проверка, является ли текущий символ c цифрой.
+					d = c - '0'; //Если это так, текущая цифра преобразуется в числовое значение и сохраняется в переменную d.
 					gc();
-				} else if (isalpha(c)) {
-					clear();
-					add();
+					CS = NUM; //Затем символ считывается и переходит в состояние NUM.
+				} else if (c == '\"') { //Проверка, является ли текущий символ c символом двойных кавычек.
+					add(); //Если это так, текущий символ добавляется в буфер с помощью метода add().
 					gc();
-					CS = IDENT;
-				} else if (isdigit(c)){
-					d = c - '0';
-					gc();
-					CS = NUM;
-				} else if (c == '\"') {
-					add();
-					gc();
-					CS = STR;
+					CS = STR; //Затем символ считывается и переходит в состояние STR.
 					tmp = look(buf, TD);
-					return Lex(LEX_QUOTE, tmp);
-				} else if (c == '/') {
-					clear();
-					add();
-					gc();
-					if (c == '*') {
+					return Lex(LEX_QUOTE, tmp); //Значение лексемы LEX_QUOTE возвращается как результат с помощью объекта Lex.
+				} else if (c == '/') { //Проверка, является ли текущий символ c символом косой черты.
+					clear(); //Если это так, вызывается метод clear() для очистки буфера.
+					add(); //Затем текущий символ добавляется в буфер с помощью метода add().
+					gc(); //Следующий символ считывается и проверяется.
+					if (c == '*') { //Если следующий является '*', значит начался комментарий, и сканер переходит в состояние COM.
 						clear();
 						gc();
 						CS = COM;
-					} else if (c == '/') {
+					} else if (c == '/') {//Если следующий '/', значит начался комментарий однострочного типа, и сканер переходит в состояние COM_STR.
 						clear();
 						gc();
 						CS = COM_STR;
 					} else {
-						un_gc();					// not comment -> return one symb to file
+						un_gc();					//не комментировать -> вернуть один символ в файл
 						c = '/';
 						CS = DELIM;
 					}
-				} else if (c == '!') {
+				} else if (c == '!') { //Проверка, является ли текущий символ c символом восклицательного знака (!).
 					clear();
 					add();
 					gc();
 					CS = NEQ;
-				} else if (c == EOF) {
+				} else if (c == EOF) { //Проверка, достигнут ли конец файла (End of File, EOF).
 					CS = FIN;
-				} else {
+				} else { //Ветка else для обработки всех остальных случаев символов.
 					clear();
 					add();
 					CS = DELIM;
 				}
 				break;
 
-			case IDENT:
+			case IDENT: //Обработка состояния IDENT (идентификатор).
 				tmp = look(buf, TW);
-				if (isalpha(c) || isdigit(c)) {
-					add();
+				if (isalpha(c) || isdigit(c)) { //Проверка, является ли текущий символ буквой или цифрой.
+					add(); //Если это так, текущий символ добавляется в буфер и символ считывается.
 					gc();
 				} else {
-					CS = H;
-					if (tmp) {												// str in buf == with elem in TW -> return Lex
+					CS = H;				//В противном случае, переходит в состояние H.
+					if (tmp) {			//Если идентификатор найден в таблице ключевых слов (TW), возвращается лексема с соответствующим типом и значением.
 						return Lex((type_of_lex)tmp, tmp);
 					} else {
-						tmp = put(buf);										// else put lexeme into TW
-						return Lex(LEX_ID, tmp);
+						tmp = put(buf);	
+						return Lex(LEX_ID, tmp);//В противном случае, идентификатор добавляется в таблицу и возвращается лексема типа LEX_ID с номером позиции идентификатора в таблице.
 					}
 				}
 				break;
 
-			case NUM:
+			case NUM: //Проверка, является ли текущий символ цифрой.
 				if (isdigit(c)) {
-					d = d * 10 + c - '0';
-					gc();
+					d = d * 10 + c - '0'; //Если это так, текущая цифра добавляется к числу d, умноженному на 10, и затем отнимается значение символа '0'.
+					gc(); //Символ считывается.
 				} else {
-					CS = H;
-					return Lex(LEX_NUM, d);
+					CS = H; //В противном случае, переходит в состояние H и возвращает лексему типа LEX_NUM с числовым значением d.
+					return Lex(LEX_NUM, d); 
 				}
 				break;
 
-			case STR:
+			case STR: //Обработка состояния STR (строка).
 				clear();
-				if (c != '\"') {
+				if (c != '\"') { //Если текущий символ не является ("), выполняется цикл до тех пор, пока текущий символ не станет (")
 					while (c != '\"') {
-						if (c == '\\') {
-							gc();
+						if (c == '\\') { //Внутри цикла происходит обработка специальных символов, начинающихся с обратной косой черты (\).
+							gc(); //Если текущий символ является символом обратной косой черты, выполняется конструкция switch для обработки различных специальных символов.
 							switch(c) {
-								case 'n':
+								case 'n': //он считывается, а затем все последующие символы табуляции (\t) пропускаются.
 									c = '\n';
-									add();
+									add(); //В противном случае, текущий символ добавляется в буфер.
 									break;
 
 								case 'r':
@@ -503,7 +427,7 @@ Lex Scanner::get_lex() {
 									add();
 									break;
 
-								case '\"':
+								case '\"': //Если текущий символ является символом двойных кавычек ("), цикл завершается.
 									add();
 									break;
 
@@ -515,79 +439,79 @@ Lex Scanner::get_lex() {
 									un_gc();
 									break;
 
-								default:
+								default: //После завершения цикла, возвращается лексема типа LEX_QUOTE с временным значением tmp.
 									string err = "\\" + string(1, c);
 									lex_error(err);
 									break;
 							}
-						} else if (c == '\n') {
+						} else if (c == '\n') { //Если текущий символ является (\n), генерируется ошибка лексического анализа с сообщением 
 							lex_error("\"");
-						} else {
+						} else {//Если ни одно из предыдущих условий не выполняется, текущий символ добавляется в буфер.
 							add();
 						}
 						gc();
 					}
-					tmp = put_string(buf);
-					return Lex(LEX_STR_CONST, tmp);
-				} else {
-					add();
+					tmp = put_string(buf);//Вызывается метод put_string, который помещает содержимое буфера в таблицу строк TSTRC и возвращает индекс строки.
+					return Lex(LEX_STR_CONST, tmp); //Возвращается лексема типа LEX_STR_CONST с временным значением tmp.
+				} else { //Если текущий символ является символом двойных кавычек ("), текущий символ добавляется в буфер.
+					add();//Вызывается метод add() для добавления текущего символа в буфер.
 					gc();
-					CS = H;
-					tmp = look(buf, TD);
-					return Lex(LEX_QUOTE, tmp);
+					CS = H;//Состояние переходит в H (начальное состояние).
+					tmp = look(buf, TD); //Вызывается метод look(), чтобы проверить, является ли содержимое буфера ключевым словом или разделителем, и возвращает соответствующий тип лексемы.
+					return Lex(LEX_QUOTE, tmp);//Возвращается лексема типа LEX_QUOTE с временным значением tmp.
 				}
 				break;
 
-			case COM:
+			case COM: //Обработка состояния COM (комментарий).
 				add();
-				if (c == '*') {
+				if (c == '*') { //Если текущий символ является символом звездочки (*), означающим возможное завершение комментария.
 					gc();
-					if (c == '/') {
+					if (c == '/') { //Если текущий символ также является символом косой черты (/), комментарий считается завершенным.
 						add();
 						gc();
 						CS = H;
-					} else {
+					} else { //Если текущий символ не является (/), он возвращается обратно во входной поток (откат) и символ / добавляется в буфер.
 						un_gc();
 					}
 				}
-				if (c == EOF) {
+				if (c == EOF) { //Если текущий символ является концом файла (EOF), состояние переходит в FIN (конечное состояние).
 					CS = FIN;
-				} else {
+				} else { //Если текущий символ не является концом файла (EOF), текущий символ считывается.
 					gc();
 				}
 				break;
 
-			case COM_STR:
-				while (c != '\n' && c != EOF) {
+			case COM_STR: //Обработка состояния COM_STR (комментарий внутри строки).
+				while (c != '\n' && c != EOF) { //Выполняется цикл до тех пор, пока текущий символ не станет символом новой строки (\n) или концом файла (EOF).
 					gc();
 				}
-				if (c == EOF) {
+				if (c == EOF) { //Если текущий символ является концом файла (EOF), состояние переходит в FIN (конечное состояние).
 					CS = FIN;
-				} else {
+				} else { //Если текущий символ не является концом файла (EOF), текущий символ считывается.
 					gc();
-					CS = H;
+					CS = H; //Состояние переходит в H (начальное состояние).
 				}
 				break;
 
-			case NEQ:
-				if (c == '=') {
+			case NEQ: //Обработка состояния NEQ (оператор "не равно").
+				if (c == '=') { //Если текущий символ является (=), он добавляется в буфер.
 					add();
 					gc();
 					CS = H;
-					tmp = look(buf, TD);
-					return Lex(LEX_NEQ, tmp);
-				} else {
-					lex_error("!");
+					tmp = look(buf, TD); //Вызывается метод look(), чтобы проверить, является ли содержимое буфера ключевым словом или разделителем, и возвращает соответствующий тип лексемы.
+					return Lex(LEX_NEQ, tmp); //Возвращается лексема типа LEX_NEQ с временным значением tmp.
+				} else { 
+					lex_error("!"); //генерируется ошибка лексического анализа с сообщением "!" (некорректное использование оператора "не").
 				}
 				break;
 
-			case DELIM:
+			case DELIM: //Обработка состояния DELIM (разделитель).
 				char c1;
 				c1 = c;
 				gc();
-				if (c1 == '>' || c1 == '<' || c1 == '=') {
-					switch(c) {
-						case '=':
+				if (c1 == '>' || c1 == '<' || c1 == '=') { //Если c1 является символом >, < или =, выполняется следующий блок кода.
+					switch(c) { //Проверка значения текущего символа.
+						case '=': //Если текущий символ является символом равенства (=), он добавляется в буфер.
 							add();
 							gc();
 							break;
@@ -597,22 +521,22 @@ Lex Scanner::get_lex() {
 					}
 				}
 				CS = H;
-				tmp = look(buf, TD);
-				if (tmp) {
-					return Lex((type_of_lex)(tmp + (int)LEX_FIN), tmp);
+				tmp = look(buf, TD); //Вызывается метод look(), чтобы проверить, является ли содержимое буфера ключевым словом или разделителем, и возвращает соответствующий тип лексемы.
+				if (tmp) { //Если tmp не равно нулю (не является пустым), выполняется следующий блок кода.
+					return Lex((type_of_lex)(tmp + (int)LEX_FIN), tmp); //Возвращается лексема, созданная на основе значения tmp с добавлением значения LEX_FIN (конец файла) для определения типа лексемы.
 				} else {
-					lex_error("'" + buf + "'");
+					lex_error("'" + buf + "'"); //Если tmp равно нулю (пустое значение), генерируется ошибка лексического анализа с сообщением "'" + buf + "'" (нераспознанный символ или разделитель).
 				}
 				break;
 
-			case FIN:
-				return Lex(LEX_FIN);
+			case FIN: //Обработка состояния FIN (конечное состояние).
+				return Lex(LEX_FIN); //Возвращается лексема типа LEX_FIN (конец файла).
 				break;
 		}
 	} while (true);
 };
 
-class Parser {
+class Parser { //Синтаксический анализатор, построение синтаксического дерева или другой структуры данных для представления программы.
 	Lex curr_lex;
 	type_of_lex c_type;
 	int c_val;
@@ -647,158 +571,158 @@ class Parser {
 	void C();						// C					-> IDENT | [+ | -] C | STR | not C | <выражение>
 
 /* Semantic */
-	void dec();
-	void check_id(int val);
-	void check_id_read();
-	void check_oper();
-	void check_un_oper();
-	void check_not();
-	void eq_type();
-	void eq_bool();
+	void dec(); //обработку деклараций переменных
+	void check_id(int val); //проверка использования идентификаторов 
+	void check_id_read(); //проверка использования идентификаторов 
+	void check_oper(); //проверка правильности операторов 
+	void check_un_oper(); //проверка унарных операторов
+	void check_not(); //проверка оператора "not"
+	void eq_type(); //проверка типов данных 
+	void eq_bool(); //проверка типов данных 
 
 /* into POLIZ */
 	void to_poliz();
 
-	void gl() {
-		curr_lex = scan.get_lex();
-		c_type = curr_lex.get_type();
+	void gl() { //которая используется для получения следующей лексемы из сканера scan
+		curr_lex = scan.get_lex(); //Она вызывает метод get_lex() объекта scan, чтобы получить следующую лексему 
+		c_type = curr_lex.get_type(); //и сохранить ее в переменных curr_lex, c_type и c_val
 		c_val = curr_lex.get_value();
+	} //Эти переменные используются для хранения информации о текущей лексеме (тип, значение) для дальнейшего использования в синтаксическом анализе.
+
+	void syn_error(string error) { //которая используется для обработки синтаксических ошибок.
+		try {
+			throw error;//Она принимает сообщение об ошибке в качестве аргумента error и генерирует исключение типа string с этим сообщением.
+		}
+		catch (string s) { //Затем она перехватывает исключение и выводит сообщение об ошибке в стандартный поток ошибок (cerr), 
+			cerr << "SYNT: " << s << ", LEX:" << curr_lex << ' ' << curr_lex.get_type() << endl; //включая информацию о текущей лексеме curr_lex и ее типе. 
+			exit(1); //После вывода сообщения программа завершается с кодом 1.
+		}
 	}
 
-	void syn_error(string error) {
-		try {
+	void sem_error(string error) { //которая используется для обработки семантических ошибок.
+		try { //Она принимает сообщение об ошибке в качестве аргумента error и генерирует исключение типа string с этим сообщением.
 			throw error;
-		}
-		catch (string s) {
-			cerr << "SYNT: " << s << ", LEX:" << curr_lex << ' ' << curr_lex.get_type() << endl;
-			exit(1);
-		}
-	}
-
-	void sem_error(string error) {
-		try {
-			throw error;
-		}
+		} //Затем она перехватывает исключение и выводит сообщение об ошибке в стандартный поток ошибок (cerr).
 		catch (string s) {
 			cerr << "ERROR: " << s << endl;
-			exit(1);
+			exit(1); //После вывода сообщения программа завершается с кодом 1.
 		}
 	}
 
 public:
-	Parser(const string _program): scan(_program) {
+	Parser(const string _program): scan(_program) { //конструктор класса Parser
 		lvalue = 1;
 		pp_id = 0;
 	}
 
-	vector<Lex> Poliz;
+	vector<Lex> Poliz; //хранения полиза 
 
-	void poliz_print() {
-		cout << "{ ";
+	void poliz_print() { //метод, для вывода содержимого полиза на стандартный вывод
+		cout << "{ "; //перебирает элементы вектора Poliz и выводит их на экран, разделяя пробелами и заключая в фигурные скобки
 		for (auto iter = Poliz.begin(); iter != Poliz.end(); iter++) {
 			cout << *iter << " ";
 		}
 		cout << "}\n";
 	}
 
-	void analyse();
+	void analyse(); //синтаксический анализ и выполнение программы.
 };
 
-template <class T1, class T2>
-void extract(T1 &st, T2 &item) {
+template <class T1, class T2> 		//используется для извлечения элемента из стека st и сохранения его в переменной item.
+void extract(T1 &st, T2 &item) { 	//Она извлекает верхний элемент стека с помощью метода top() и удаляет его с помощью метода pop().
 	item = st.top();
 	st.pop();
 }
 
-void Parser::analyse() {
-	gl();
-	P();
-	if (c_type != LEX_FIN) {
-		syn_error("NO FINAL");
-	cout << "good" << endl;
+void Parser::analyse() { //синтаксический анализ программы.
+	gl(); //получения первой лексемы
+	P(); //для анализа главного блока программы
+	if (c_type != LEX_FIN) { //проверяет, что текущая лексема имеет тип LEX_FIN, что указывает на конец программы
+		syn_error("NO FINAL"); //если не так, вызывается эта функция и генерит сообщение об ошибке
+	cout << "good" << endl; //Затем выводится сообщение "good" и завершается метод.
 	}
 }
 
 /* SYNTAX */
-void Parser::P() {
-	if (c_type == LEX_PROGRAM) {
+void Parser::P() { //анализирует главный блок программы
+	if (c_type == LEX_PROGRAM) { //текущая лексема имеет тип LEX_PROGRAM, и если это так, выполняет gl() для получения следующей лексемы
 		gl();
-	} else {
+	} else { //Если текущая лексема не является LEX_PROGRAM, вызывается функция syn_error()
 		syn_error("NO PROGRAM");
 	}
-	if (c_type == LEX_LBRACE) {
-		gl();
-	} else {
+	if (c_type == LEX_LBRACE) { //Затем он проверяет, что текущая лексема имеет тип LEX_LBRACE, и если это так
+		gl(); //выполняет gl() для получения следующей лексемы.
+	} else { //Если текущая лексема не является LEX_LBRACE, вызывается функция syn_error()
 		syn_error("NO LBRACE");
 	}
-	OPERS();
+	OPERS(); //Затем вызывается функция OPERS(), чтобы анализировать операторы внутри блока.
 }
 
-void Parser::DESCRS() {
-	DESCR();
-	if (c_type != LEX_SEMICOLON) {
-		syn_error("NO SEMICOLON");
+void Parser::DESCRS() { //анализирует блок описаний переменных. 
+	DESCR(); //вызывает функцию DESCR() для анализа первого описания переменной
+	if (c_type != LEX_SEMICOLON) { //проверяет, что текущая лексема имеет тип LEX_SEMICOLON, что указывает на наличие точки с запятой после описания переменной.
+		syn_error("NO SEMICOLON"); //Если текущая лексема не является LEX_SEMICOLON, вызывается функция syn_error()
 	}
-	gl();
+	gl(); //Затем выполняется gl() для получения следующей лексемы.
 }
 
-void Parser::DESCR() {
-	type_of_lex ident_type = c_type;
+void Parser::DESCR() { //анализирует отдельное описание переменной в блоке описаний
+	type_of_lex ident_type = c_type; //Он сохраняет тип переменной (c_type) в переменной ident_type и помещает его в стек st_lex
 	st_lex.push(ident_type);
-	gl();
-	VAR();
-	while (c_type == LEX_COMMA) {
-		st_lex.push(ident_type);
-		gl();
-		VAR();
-	}
+	gl(); //Затем выполняется gl() для получения следующей лексемы.
+	VAR(); //функция VAR(), чтобы анализировать переменную
+	while (c_type == LEX_COMMA) { // цикл while проверяет, что текущая лексема имеет тип LEX_COMMA
+		st_lex.push(ident_type); //что указывает на наличие запятой после переменной, и если это так
+		gl(); //выполняет gl() для получения следующей лексемы
+		VAR(); //вызывает VAR() для анализа следующей переменной
+	} //Этот процесс повторяется, пока встречается запятая.
 }
 
-void Parser::VAR() {
-	if (c_type == LEX_ID) {
-		dec();
-		Poliz.push_back(Lex(POLIZ_ADDRESS, c_val));
-		gl();
-		if (c_type == LEX_ASSIGN) {
-			gl();
-			CONST();
-			Poliz.push_back(LEX_ASSIGN);
+void Parser::VAR() { //метод, анализирующий переменную
+	if (c_type == LEX_ID) { //проверяет, что текущая лексема имеет тип LEX_ID, что указывает на идентификатор переменной.
+		dec(); //функция dec(), которая выполняет операции связанные с объявлением переменной.
+		Poliz.push_back(Lex(POLIZ_ADDRESS, c_val)); // добавляется лексема Lex(POLIZ_ADDRESS, c_val), чтобы указать адрес переменной в постфиксной записи.
+		gl(); //выполняется gl() для получения следующей лексемы.
+		if (c_type == LEX_ASSIGN) { //Если следующая лексема имеет тип LEX_ASSIGN, что указывает на оператор присваивания, то вызывается gl()
+			gl(); 
+			CONST(); //вызывается функция CONST(), чтобы проанализировать константу
+			Poliz.push_back(LEX_ASSIGN); //Затем в Poliz добавляется лексема LEX_ASSIGN, чтобы указать операцию присваивания.
 		} else {
-			Poliz.pop_back();
+			Poliz.pop_back(); //то удаляется последняя добавленная лексема из Poliz.
 		}
-		if (c_type == LEX_COMMA || c_type == LEX_SEMICOLON) {
-			st_lex.pop();
-		} else {
+		if (c_type == LEX_COMMA || c_type == LEX_SEMICOLON) { //проверяется, что текущая лексема имеет тип LEX_COMMA или LEX_SEMICOLON, что указывает на наличие запятой или точки с запятой после переменной. 
+			st_lex.pop(); //Если это так, то тип переменной удаляется из стека st_lex
+		} else { //Если текущая лексема не является LEX_COMMA или LEX_SEMICOLON, вызывается функция syn_error(), чтобы сгенерировать сообщение об ошибке.
 			syn_error("ONLY '='");
 		}
-	} else {
+	} else { //Если текущая лексема не является LEX_ID, вызывается функция syn_error(), чтобы сгенерировать сообщение об ошибке "NO IDENT".
 		syn_error("NO IDENT");
 	}
 }
 
-void Parser::CONST() {
-	if (st_lex.top() == LEX_INT || st_lex.top() == LEX_STRING || st_lex.top() == LEX_BOOL) {
-		EXPR(0);
-		eq_type();
-	} else {
+void Parser::CONST() { //метод, анализирующий константу
+	if (st_lex.top() == LEX_INT || st_lex.top() == LEX_STRING || st_lex.top() == LEX_BOOL) { //Сначала он проверяет, что тип верхнего элемента стека st_lex соответствует типу константы
+		EXPR(0); //вызывается функция EXPR(0), чтобы анализировать выражение, которое будет являться значением константы.
+		eq_type(); //чтобы проверить, соответствует ли тип выражения типу константы.
+	} else { //Если типы не совпадают, вызывается функция syn_error(), чтобы сгенерировать сообщение об ошибке "NO CONST TYPE".
 		syn_error("NO CONST TYPE");
 	}
 }
 
-void Parser::OPERS() {
-	while (c_type != LEX_RBRACE) {
-		OPER();
-		if (c_type == LEX_FIN) {
-			syn_error("NO RBRACE");
+void Parser::OPERS() { //метод, анализирующий операторы
+	while (c_type != LEX_RBRACE) { //выполняет цикл, пока текущая лексема не является LEX_RBRACE, что указывает на закрывающую скобку блока операторов.
+		OPER(); //Внутри цикла вызывается функция OPER(), чтобы проанализировать отдельный оператор.
+		if (c_type == LEX_FIN) { //проверяется, что текущая лексема не является LEX_FIN, что указывает на конец программы внутри блока операторов.
+			syn_error("NO RBRACE"); //если является, то вызывается функция и генерит сообщение об ошибке "NO RBRACE".
 		}
 	}
-	gl();
+	gl(); //После завершения цикла выполняется gl(), чтобы получить следующую лексему после закрывающей скобки.
 }
 
-void Parser::OPER() {
+void Parser::OPER() { //метод анализирующий операторы
 	int p0, p1, p2, p3, p4;
-	switch(c_type) {
-		case LEX_INT:
+	switch(c_type) { //В зависимости от типа текущей лексемы c_type, выполняется соответствующий блок кода.
+		case LEX_INT: // вызывается функция DESCRS() для анализа списка объявлений переменных.
 			DESCRS();
 			break;
 
@@ -810,139 +734,141 @@ void Parser::OPER() {
 			DESCRS();
 			break;
 
-		case LEX_IF:
+		case LEX_IF: //выполняется код для анализа конструкции условного оператора if
 			gl();
-			if (c_type != LEX_LPAREN) {
+			if (c_type != LEX_LPAREN) { //Сначала происходит проверка наличия открывающей скобки LEX_LPAREN
 				syn_error("NO LPAREN IN IF");
 			}
 
 			gl();
-			EXPR();
+			EXPR(); //затем анализируется выражение EXPR(), вызывается функция eq_bool() для проверки, является ли выражение логическим
 			eq_bool();
-			p2 = Poliz.size();
-			Poliz.push_back(Lex());
-			Poliz.push_back(Lex(POLIZ_FGO));
+			p2 = Poliz.size(); //Здесь сохраняется текущий размер полиза
+			Poliz.push_back(Lex()); //В полиз добавляется пустая лексема.
+			Poliz.push_back(Lex(POLIZ_FGO)); //В полиз добавляется лексема с типом POLIZ_FGO, которая будет использоваться для перехода в полизе в случае ложного условия в операторе if.
 
-			if (c_type != LEX_RPAREN) {
-				syn_error("NO RPAREN IN IF");
+			if (c_type != LEX_RPAREN) { //Это условное выражение проверяет, что после анализа выражения в условии оператора if следует закрывающая скобка LEX_RPAREN
+				syn_error("NO RPAREN IN IF"); //Если это условие не выполняется, вызывается функция syn_error(), которая генерирует сообщение об ошибке.
 			}
 
-			gl();
-			OPER();
-			Poliz[p2] = Lex(POLIZ_LABEL, Poliz.size());
+			gl(); // функция gl(), чтобы получить следующую лексему после закрывающей скобки.
+			OPER(); //Вызывается функция OPER(), которая анализирует блок операторов для ветки if.
+			Poliz[p2] = Lex(POLIZ_LABEL, Poliz.size()); //Здесь в полизе обновляется лексема с индексом p2, присваивая ей значение текущего размера полиза. 
+			//Это делается для указания правильного адреса перехода, который будет выполнен в случае ложного условия в операторе if.
 
-			if (c_type == LEX_ELSE) {
-				p3 = Poliz.size();
-				Poliz.push_back(Lex());
-				Poliz.push_back(Lex(POLIZ_GO));
-				Poliz[p2] = Lex(POLIZ_LABEL, Poliz.size());
-				gl();
-				OPER();
-				Poliz[p3] = Lex(POLIZ_LABEL, Poliz.size());
+			if (c_type == LEX_ELSE) {//Это условное выражение проверяет, есть ли после блока операторов для ветки if ключевое слово LEX_ELSE, указывающее на наличие ветки else.
+				//Если это условие выполняется, выполняется код внутри фигурных скобок.
+				p3 = Poliz.size(); //Здесь сохраняется текущий размер полиза для использования в качестве адреса перехода в полизе.
+				Poliz.push_back(Lex()); //В полиз добавляется пустая лексема.
+				Poliz.push_back(Lex(POLIZ_GO)); //В полиз добавляется лексема с типом POLIZ_GO, которая будет использоваться для перехода в полизе после выполнения блока операторов для ветки if.
+				Poliz[p2] = Lex(POLIZ_LABEL, Poliz.size()); //Обновляется лексема в полизе с индексом p2, указывающая на адрес перехода в полизе после выполнения блока операторов для ветки if.
+				gl(); //Вызывается функция gl(), чтобы получить следующую лексему после ключевого слова else.
+				OPER(); //Вызывается функция OPER(), которая анализирует блок операторов для ветки else.
+				Poliz[p3] = Lex(POLIZ_LABEL, Poliz.size()); //Обновляется лексема в полизе с индексом p3, указывающая на адрес перехода в полизе после выполнения блока операторов для ветки else.
 			}
-			break;
+			break; 
 
 		case LEX_WHILE:
-			p0 = Poliz.size();
+			p0 = Poliz.size(); //Здесь сохраняется текущий размер полиза в переменную p0. Она будет использоваться для указания адреса начала цикла while в полизе.
 			gl();
-			if (c_type != LEX_LPAREN) {
+			if (c_type != LEX_LPAREN) { //Это условное выражение проверяет, что после ключевого слова while следует открывающая скобка LEX_LPAREN
 				syn_error("NO LPAREN IN WHILE");
 			}
 
 			gl();
-			EXPR();
-			eq_bool();
-			p1 = Poliz.size();
-			Poliz.push_back(Lex());
-			Poliz.push_back(Lex(POLIZ_FGO));
+			EXPR(); // Вызывается функция EXPR(), которая анализирует выражение внутри условия цикла while.
+			eq_bool();//Вызывается функция eq_bool(), которая проверяет, является ли анализируемое выражение логическим. Если выражение не является логическим, генерируется сообщение об ошибке.
+			p1 = Poliz.size(); //Здесь сохраняется текущий размер полиза для использования в качестве адреса перехода в полизе.
+			Poliz.push_back(Lex()); //В полиз добавляется пустая лексема.
+			Poliz.push_back(Lex(POLIZ_FGO)); // В полиз добавляется лексема с типом POLIZ_FGO, которая будет использоваться для перехода в полизе в случае ложного условия в цикле while.
 
-			if (c_type != LEX_RPAREN) {
-				syn_error("NO RPAREN IN WHILE");
+			if (c_type != LEX_RPAREN) { //Это условное выражение проверяет, что после анализа выражения в условии цикла while следует закрывающая скобка LEX_RPAREN.
+				syn_error("NO RPAREN IN WHILE"); //Если это условие не выполняется, вызывается функция syn_error(), которая генерирует сообщение об ошибке.
 			}
 
 			gl();
-			OPER();
-			Poliz.push_back(Lex(POLIZ_LABEL, p0));
-			Poliz.push_back(Lex(POLIZ_GO));
-			Poliz[p1] = Lex(POLIZ_LABEL, Poliz.size());
+			OPER(); //Вызывается функция OPER(), которая анализирует блок операторов цикла while.
+			Poliz.push_back(Lex(POLIZ_LABEL, p0)); //В полиз добавляется лексема с типом POLIZ_LABEL и значением p0, указывающая на адрес начала цикла while в полизе.
+			Poliz.push_back(Lex(POLIZ_GO)); //В полиз добавляется лексема с типом POLIZ_GO, которая будет использоваться для перехода к началу цикла while.
+			Poliz[p1] = Lex(POLIZ_LABEL, Poliz.size()); //Обновляется лексема в полизе с индексом p1, указывающая на адрес перехода в полизе после выполнения блока операторов цикла while.
 			break;
 
 		case LEX_FOR:
-			gl();
-			if (c_type != LEX_LPAREN) {
-				syn_error("NO LPAREN IN FOR");
+			gl(); //Вызывается функция gl(), чтобы получить следующую лексему после ключевого слова for.
+			if (c_type != LEX_LPAREN) { //Это условное выражение проверяет, что после ключевого слова for следует открывающая скобка LEX_LPAREN.
+				syn_error("NO LPAREN IN FOR"); //Если это условие не выполняется, вызывается функция syn_error(), которая генерирует сообщение об ошибке.
 			}
 
 			gl();
-			if(c_type == LEX_SEMICOLON) {
-				gl();
-			} else if (c_type == LEX_INT || c_type == LEX_STRING || c_type == LEX_BOOL) {
-				DESCRS();
-			} else {
+			if(c_type == LEX_SEMICOLON) { //Это условное выражение проверяет, что после открывающей скобки LEX_LPAREN следует точка с запятой LEX_SEMICOLON
+				gl(); //..Это означает, что в первой части цикла for нет инициализации переменной.
+			} else if (c_type == LEX_INT || c_type == LEX_STRING || c_type == LEX_BOOL) { //Это условное выражение проверяет, что после открывающей скобки LEX_LPAREN следует объявление переменной
+				DESCRS(); //функция DESCRS(), анализирует объявление переменной.
+			} else { //Если ни одно из предыдущих условий не выполняется, вызывается функция OPER_EXPR(), которая анализирует выражение в первой части цикла for.
 				OPER_EXPR();
 			}
 
-			p3 = Poliz.size();
-			if (c_type == LEX_SEMICOLON) {
-				Poliz.push_back(Lex(LEX_TRUE, 1));
-				gl();
+			p3 = Poliz.size(); //Здесь сохраняется текущий размер полиза для использования в качестве адреса перехода в полизе.
+			if (c_type == LEX_SEMICOLON) { //Это условное выражение проверяет, что после анализа первой части цикла for следует точка с запятой LEX_SEMICOLON
+				Poliz.push_back(Lex(LEX_TRUE, 1)); //Если это условие выполняется, в полиз добавляется лексема с типом LEX_TRUE и значением 1
+				gl(); //вызывается функция gl() для перехода к следующей лексеме. Это означает, что вторая часть цикла for отсутствует и цикл будет выполняться бесконечно.
 			} else {
-				EXPR();
-				eq_bool();
+				EXPR(); //Если предыдущее условие не выполняется, вызывается функция EXPR(), чтобы анализировать выражение во второй части цикла for. 
+				eq_bool(); //вызывается функция eq_bool(), которая проверяет, является ли анализируемое выражение логическим
 				if (c_type != LEX_SEMICOLON) {
 					syn_error("NO SEMICOLON IN FOR");
 				}
 				gl();
 			}
 
-			p1 = Poliz.size();
-			Poliz.push_back(Lex());
-			Poliz.push_back(Lex(POLIZ_FGO));
-			p2 = Poliz.size();
-			Poliz.push_back(Lex());
-			Poliz.push_back(Lex(POLIZ_GO));
-			p4 = Poliz.size();
+			p1 = Poliz.size(); //Здесь сохраняется текущий размер полиза для использования в качестве адреса перехода в полизе.
+			Poliz.push_back(Lex()); //В полиз добавляется пустая лексема.
+			Poliz.push_back(Lex(POLIZ_FGO)); // В полиз добавляется лексема с типом POLIZ_FGO, которая будет использоваться для перехода в полизе в случае ложного условия в цикле for.
+			p2 = Poliz.size(); //Здесь сохраняется текущий размер полиза для использования в качестве адреса перехода в полизе.
+			Poliz.push_back(Lex()); //В полиз добавляется пустая лексема.
+			Poliz.push_back(Lex(POLIZ_GO)); //В полиз добавляется лексема с типом POLIZ_GO, которая будет использоваться для перехода в полизе после выполнения блока операторов цикла for.
+			p4 = Poliz.size(); //Здесь сохраняется текущий размер полиза для использования в качестве адреса перехода в полизе.
 
-			if (c_type == LEX_RPAREN) {
-				gl();
+			if (c_type == LEX_RPAREN) { //Это условное выражение проверяет, что после анализа второй части цикла for следует закрывающая скобка LEX_RPAREN. 
+				gl(); //Если это условие выполняется, вызывается функция gl() для перехода к следующей лексеме
 			} else {
-				EXPR();
-				Poliz.push_back(Lex(POLIZ_LABEL, p3));
-				Poliz.push_back(Lex(POLIZ_GO));
-				if (c_type != LEX_RPAREN) {
+				EXPR(); //Если предыдущее условие не выполняется, вызывается функция EXPR(), чтобы анализировать выражение во второй части цикла for.
+				Poliz.push_back(Lex(POLIZ_LABEL, p3)); //Затем в полиз добавляется лексема с типом POLIZ_LABEL и значением p3, указывающая на адрес перехода в полизе после выполнения блока операторов цикла for.
+				Poliz.push_back(Lex(POLIZ_GO)); //Затем в полиз добавляется лексема POLIZ_GO, которая будет использоваться для перехода в полизе после выполнения блока операторов цикла for.
+				if (c_type != LEX_RPAREN) { //Затем проверяется, что после анализа выражения следует закрывающая скобка LEX_RPAREN. 
 					syn_error("NO RPAREN IN FOR");
-				}
+				} //Если это условие не выполняется, вызывается функция syn_error(), которая генерирует сообщение об ошибке. Затем вызывается функция gl() для перехода к следующей лексеме.
 				gl();
 			}
 
-			Poliz[p2] = Lex(POLIZ_LABEL, Poliz.size());
-			OPER();
-			Poliz.push_back(Lex(POLIZ_LABEL, p4));
-			Poliz.push_back(Lex(POLIZ_GO));
-			Poliz[p1] = Lex(POLIZ_LABEL, Poliz.size());
+			Poliz[p2] = Lex(POLIZ_LABEL, Poliz.size()); //Обновляется лексема в полизе с индексом p2, указывающая на адрес перехода в полизе после выполнения блока операторов цикла for.
+			OPER(); //Вызывается функция OPER(), которая анализирует блок операторов цикла for.
+			Poliz.push_back(Lex(POLIZ_LABEL, p4)); //В полиз добавляется лексема с типом POLIZ_LABEL и значением p4, указывающая на адрес перехода в полизе после выполнения блока операторов цикла for.
+			Poliz.push_back(Lex(POLIZ_GO)); //В полиз добавляется лексема с типом POLIZ_GO, которая будет использоваться для перехода к началу цикла for.
+			Poliz[p1] = Lex(POLIZ_LABEL, Poliz.size()); //Обновляется лексема в полизе с индексом p1, указывающая на адрес перехода в полизе после выполнения блока операторов цикла for.
 			break;
 
 		case LEX_READ:
-			gl();
-			if (c_type != LEX_LPAREN) {
+			gl(); 
+			if (c_type != LEX_LPAREN) { //Эта строка проверяет, что текущий лексический токен является открывающей скобкой LEX_LPAREN. 
 				syn_error("NO LPAREN IN READ");
 			}
 
 			gl();
-			if (c_type != LEX_ID) {
+			if (c_type != LEX_ID) { //Эта строка проверяет, что текущий лексический токен является идентификатором LEX_ID.
 				syn_error("NO IDENT IN READ");
 			}
-			check_id_read();
-			Poliz.push_back(Lex(POLIZ_ADDRESS, c_val));
+			check_id_read(); //проверяет, является ли идентификатор корректным для операции чтения (например, существует ли соответствующая переменная).
+			Poliz.push_back(Lex(POLIZ_ADDRESS, c_val)); //В полиз добавляется лексема с типом POLIZ_ADDRESS и значением c_val, указывающая на адрес переменной в памяти, которую нужно прочитать.
 
 			gl();
-			if (c_type != LEX_RPAREN) {
+			if (c_type != LEX_RPAREN) { //Эта строка проверяет, что текущий лексический токен является закрывающей скобкой LEX_RPAREN.
 				syn_error("NO RPAREN IN READ");
 			}
 
 			gl();
-			Poliz.push_back(Lex(LEX_READ));
-			if (c_type != LEX_SEMICOLON) {
+			Poliz.push_back(Lex(LEX_READ)); //В полиз добавляется лексема LEX_READ, указывающая на операцию чтения.
+			if (c_type != LEX_SEMICOLON) { //Эта строка проверяет, что текущий лексический токен является точкой с запятой LEX_SEMICOLON.
 				syn_error("NO SEMICOLON IN READ");
 			}
 			gl();
@@ -989,22 +915,22 @@ void Parser::OPER() {
 	}
 }
 
-void Parser::OPER_EXPR() {
+void Parser::OPER_EXPR() { //Данная функция определяет обработку операций или выражений.
 	pp_id = 0;
-	EXPR(1);
-	if (c_type == LEX_SEMICOLON || c_type == LEX_COLON) {
+	EXPR(1); //Вызывает функцию EXPR() с аргументом 1. Это указывает на то, что текущее выражение является левым операндом операции присваивания.
+	if (c_type == LEX_SEMICOLON || c_type == LEX_COLON) { //Проверяет, что текущий лексический токен является точкой с запятой LEX_SEMICOLON или двоеточием LEX_COLON.
 		gl();
 	} else {
 		syn_error("NO SEMICOLON");
 	}
 }
 
-void Parser::EXPR(int v) {
-	lvalue = v;
+void Parser::EXPR(int v) { //Данная функция разбирает выражения.
+	lvalue = v; 
 	type_of_lex assign_type = c_type;
-	A();
+	A(); //Вызывает функцию A(), которая обрабатывает арифметическое выражение.
 
-	if (c_type == LEX_ASSIGN) {
+	if (c_type == LEX_ASSIGN) { //Проверяет, является ли текущий лексический токен оператором присваивания LEX_ASSIGN или оператором сравнения (LEX_EQ, LEX_NEQ и т.д.)
 		if (assign_type == LEX_ID && lvalue) {
 			pp_id = 1;
 			int value;
@@ -1028,31 +954,33 @@ void Parser::EXPR(int v) {
 		Poliz.push_back(Lex(tmp_type));
 	}
 
-	if (!st_lvalue_uncertain.empty()) {
+	if (!st_lvalue_uncertain.empty()) { //Проверяет, содержит ли стек st_lvalue_uncertain некоторые значения. Если стек не пустой, выполняются соответствующие операции.
 		int value;
 		extract(st_lvalue_uncertain, value);
 		lvalue ? Poliz[num] = Lex(POLIZ_ADDRESS, value) : Poliz[num] = Lex(LEX_ID, value);
 	}
 
-	if (!pp_id) {
+	if (!pp_id) { //Проверяет значение pp_id. Если pp_id равно 0, выполняются соответствующие операции.
 		to_poliz();
 	}
 }
+//В обоих функциях присутствуют вызовы других вспомогательных функций, таких как gl(), syn_error(), check_oper(), to_poliz(), eq_type(), которые выполняют различные операции, связанные с разбором и обработкой лексических токенов и выражений. 
+//Полный контекст и логика работы этих функций могут быть определены только на основе полного кода программы.
 
-void Parser::A() {
-	B();
-	while (c_type == LEX_PLUS || c_type == LEX_MINUS || c_type == LEX_OR) {
-		type_of_lex add_type = c_type;
+void Parser::A() { //Данная функция разбирает арифметические выражения, связанные с операциями сложения, вычитания и логическим ИЛИ.
+	B(); //Вызывает функцию B(), которая разбирает арифметические выражения в контексте операций сложения, вычитания и логическим ИЛИ.
+	while (c_type == LEX_PLUS || c_type == LEX_MINUS || c_type == LEX_OR) { //Проверяет, является ли текущий лексический токен оператором сложения LEX_PLUS, оператором вычитания LEX_MINUS или оператором логического ИЛИ LEX_OR
+		type_of_lex add_type = c_type; //Создает переменную add_type и присваивает ей значение текущего типа лексического токена c_type.
 		lvalue = 0;
-		st_lex.push(c_type);
+		st_lex.push(c_type); //Помещает текущий лексический токен в стек st_lex.
 		gl();
-		B();
-		check_oper();
-		Poliz.push_back(Lex(add_type));
-	}
+		B(); //Вызывает функцию B() для разбора следующего арифметического выражения.
+		check_oper(); //Проверяет операторы в стеке st_lex и выполняет соответствующие операции.
+		Poliz.push_back(Lex(add_type)); //Добавляет оператор в выходную последовательность полиза.
+	} //Цикл продолжается до тех пор, пока текущий лексический токен является оператором сложения, вычитания или логическим ИЛИ.
 }
 
-void Parser::B() {
+void Parser::B() { //Данная функция разбирает арифметические выражения, связанные с операциями умножения, деления и логического И.
 	C();
 	while (c_type == LEX_MULT || c_type == LEX_SLASH || c_type == LEX_AND) {
 		type_of_lex mul_type = c_type;
@@ -1062,197 +990,198 @@ void Parser::B() {
 		C();
 		check_oper();
 		Poliz.push_back(Lex(mul_type));
-	}
+	} 
 }
 
-void Parser::C() {
-	switch(c_type) {
-		case LEX_ID:
-			if (lvalue) {
-				st_lvalue_uncertain.push(c_val);
-				num = Poliz.size();
-				Poliz.push_back(Lex());
+void Parser::C() { //обрабатывает выражения и операнды.
+	switch(c_type) { 
+		case LEX_ID: //обработка случая, когда текущая лексема является идентификатором.
+			if (lvalue) { //проверка флага lvalue, который указывает на то, ожидается ли значение переменной слева от присваивания.
+				st_lvalue_uncertain.push(c_val); //добавление идентификатора переменной в стек st_lvalue_uncertain.
+				num = Poliz.size(); //сохранение текущего размера полиза.
+				Poliz.push_back(Lex()); //добавление пустой лексемы в полиз для последующей замены адреса.
 			} else {
-				Poliz.push_back(Lex(LEX_ID, c_val));
+				Poliz.push_back(Lex(LEX_ID, c_val)); 
 			}
 
 			int id_val;
-			id_val = c_val;
+			id_val = c_val; //сохранение значения текущего идентификатора.
 			gl();
-			if (c_type == LEX_COLON) {
-				if (!pp_id) {
-					if (lvalue) {
-						st_lvalue_uncertain.pop();
+			if (c_type == LEX_COLON) { //проверка, является ли следующая лексема двоеточием, указывающим на объявление метки.
+				if (!pp_id) { //проверка флага pp_id, который указывает на то, что это не присваивание значения метке.
+					if (lvalue) { //проверка флага lvalue для исключения неправильного использования метки.
+						st_lvalue_uncertain.pop(); //удаление идентификатора переменной из стека st_lvalue_uncertain.
 					}
-					Poliz.pop_back();
+					Poliz.pop_back(); // удаление последней лексемы из полиза.
 
-					if (TID[id_val].get_label()) {
-						int pos = TID[id_val].get_address();
-						if (TID[id_val].get_value() != -1) {
+					if (TID[id_val].get_label()) { //проверка, является ли идентификатор меткой.
+						int pos = TID[id_val].get_address(); //получение адреса метки.
+						if (TID[id_val].get_value() != -1) { //проверка, была ли метка уже объявлена.
 							syn_error("LABEL IS DECLARED TWICE: " + TID[id_val].get_name());
 						}
-						TID[id_val].put_value(Poliz.size());
-						TID[id_val].put_assign();
-						Poliz[pos] = Lex(POLIZ_LABEL, Poliz.size());
-					} else if (!TID[id_val].get_declare()) {
-						TID[id_val].put_label();
-						TID[id_val].put_value(Poliz.size());
-						TID[id_val].put_assign();
-					} else {
-						syn_error("LABEL IS ALREADY DECLARED AS AN IDENT: " + TID[id_val].get_name());
+						TID[id_val].put_value(Poliz.size()); //сохранение значения метки в таблице идентификаторов.
+						TID[id_val].put_assign(); //установка флага assign для метки.
+						Poliz[pos] = Lex(POLIZ_LABEL, Poliz.size()); //замена пустой лексемы в полизе на метку.
+					} else if (!TID[id_val].get_declare()) { // проверка, была ли переменная уже объявлена.
+						TID[id_val].put_label(); // установка флага label для переменной.
+						TID[id_val].put_value(Poliz.size()); //сохранение значения переменной в таблице идентификаторов.
+						TID[id_val].put_assign(); //установка флага assign для переменной.
+					} else { //обработка случая, когда метка уже была объявлена как идентификатор.
+						syn_error("LABEL IS ALREADY DECLARED AS AN IDENT: " + TID[id_val].get_name()); //генерация ошибки "Метка уже объявлена как идентификатор".
 					}
 				} else {
 					syn_error("WRONG USAGE OF LABEL: " + TID[id_val].get_name());
 				}
 			}
 
-			check_id(id_val);
+			check_id(id_val); //проверка идентификатора на наличие в таблице идентификаторов.
 			break;
 
-		case LEX_NUM:
-			st_lex.push(LEX_INT);
-			Poliz.push_back(curr_lex);
+		case LEX_NUM: //обработка случая, когда текущая лексема является числом.
+			st_lex.push(LEX_INT); //добавление типа LEX_INT в стек st_lex.
+			Poliz.push_back(curr_lex); //добавление текущей лексемы в полиз.
 			gl();
 			break;
 
-		case LEX_PLUS:
+		case LEX_PLUS: //обработка случая, когда текущая лексема является плюсом.
+			lvalue = 0;
+			gl();
+			C();
+			check_un_oper(); //проверка правильности использования унарного оператора.
+			break;
+
+		case LEX_MINUS: //обработка случая, когда текущая лексема является минусом.
 			lvalue = 0;
 			gl();
 			C();
 			check_un_oper();
+			Poliz.push_back(Lex(LEX_UN_MINUS)); //добавление унарного минуса в полиз.
 			break;
 
-		case LEX_MINUS:
-			lvalue = 0;
+		case LEX_QUOTE: //обработка случая, когда текущая лексема является открывающей кавычкой.
 			gl();
-			C();
-			check_un_oper();
-			Poliz.push_back(Lex(LEX_UN_MINUS));
-			break;
-
-		case LEX_QUOTE:
-			gl();
-			st_lex.push(LEX_STRING);
-			Poliz.push_back(curr_lex);
-			if (c_type != LEX_STR_CONST) {
-				syn_error("NO STR_CONST");
+			st_lex.push(LEX_STRING); //добавление типа LEX_STRING в стек st_lex.
+			Poliz.push_back(curr_lex); //добавление текущей лексемы в полиз.
+			if (c_type != LEX_STR_CONST) { //проверка, является ли следующая лексема строковой константой.
+				syn_error("NO STR_CONST"); //генерация ошибки "Отсутствует строковая константа".
 			}
 			gl();
 			gl();
 			break;
 
-		case LEX_TRUE: case LEX_FALSE:
-			st_lex.push(LEX_BOOL);
-			c_type == LEX_TRUE ? Poliz.push_back(Lex(LEX_TRUE, 1)) : Poliz.push_back(Lex(LEX_FALSE, 0));
+		case LEX_TRUE: case LEX_FALSE: //обработка случая, когда текущая лексема является логическим значением TRUE или FALSE.
+			st_lex.push(LEX_BOOL); //добавление типа LEX_BOOL в стек st_lex.
+			c_type == LEX_TRUE ? Poliz.push_back(Lex(LEX_TRUE, 1)) : Poliz.push_back(Lex(LEX_FALSE, 0));//добавление соответствующей лексемы в полиз в зависимости от значения текущей лексемы.
 			gl();
 			break;
 
-		case LEX_NOT:
+		case LEX_NOT: //обработка случая, когда текущая лексема является оператором НЕ
 			lvalue = 0;
 			gl();
 			C();
-			check_not();
-			Poliz.push_back(Lex(LEX_NOT));
+			check_not(); //проверка правильности использования оператора НЕ.
+			Poliz.push_back(Lex(LEX_NOT)); //добавление оператора НЕ в полиз.
 			break;
 
-		case LEX_LPAREN:
+		case LEX_LPAREN: //обработка случая, когда текущая лексема является открывающей скобкой.
 			gl();
 			EXPR(0);
-			if (c_type != LEX_RPAREN) {
-				syn_error("NO RPAREN IN C_LEX_LPAREN");
+			if (c_type != LEX_RPAREN) { //проверка, является ли следующая лексема закрывающей скобкой.
+				syn_error("NO RPAREN IN C_LEX_LPAREN"); //генерация ошибки "Отсутствует закрывающая скобка".
 			}
 			gl();
 			break;
 
-		default:
-			syn_error("NO OPERAND");
+		default: // обработка случая, когда текущая лексема не является ни одним из вышеописанных типов.
+			syn_error("NO OPERAND"); //генерация ошибки "Отсутствует операнд".
 			break;
 	}
 }
 
 /* Semantic */
 void Parser::dec() {
-	if (TID[c_val].get_declare()) {
-		sem_error("VARIABLE IS DECLARED TWICE: " + TID[c_val].get_name());
+	if (TID[c_val].get_declare()) { //проверка, была ли переменная уже объявлена.
+		sem_error("VARIABLE IS DECLARED TWICE: " + TID[c_val].get_name()); //генерация ошибки "Переменная объявлена дважды" в случае, если переменная уже объявлена.
 	} else {
-		TID[c_val].put_type(st_lex.top());
-		TID[c_val].put_declare();
+		TID[c_val].put_type(st_lex.top()); //установка типа переменной равным верхнему элементу стека st_lex.
+		TID[c_val].put_declare(); //установка флага объявления переменной.
 	}
 }
 
 void Parser::check_id(int value) {
 	if (TID[value].get_declare()) {
-		st_lex.push(TID[value].get_type());
+		st_lex.push(TID[value].get_type()); //добавление типа переменной в стек st_lex.
 	} else {
-		sem_error("VARIABLE NOT DECLARED: " + TID[value].get_name());
+		sem_error("VARIABLE NOT DECLARED: " + TID[value].get_name()); //генерация ошибки "Переменная не объявлена" в случае, если переменная не была объявлена.т
 	}
 }
 
 void Parser::check_id_read() {
 	if (!TID[c_val].get_declare()) {
-		sem_error("IN READ - VARIABLE NOT DECLARED: " + TID[c_val].get_name());
+		sem_error("IN READ - VARIABLE NOT DECLARED: " + TID[c_val].get_name()); //генерация ошибки "Переменная не объявлена" в случае, если переменная не была объявлена.
 	}
 }
 
 void Parser::check_oper() {
 	type_of_lex op, op1, op2;
 	type_of_lex op_type, res_type;
-	extract(st_lex, op2);
-	extract(st_lex, op);
-	extract(st_lex, op1);
-
-	if (op1 == LEX_STRING && op1 == op2) {
-		op_type = LEX_STRING;
-		if (op == LEX_PLUS) {
-			res_type = LEX_STRING;
-		} else if (op == LEX_EQ || op == LEX_NEQ || op == LEX_LSS || op == LEX_GRT) {
-			res_type = LEX_BOOL;
+	extract(st_lex, op2); //извлечение операнда op2 из стека st_lex.
+	extract(st_lex, op); //извлечение оператора op из стека st_lex.
+	extract(st_lex, op1); // извлечение операнда op1 из стека st_lex.
+ 
+	if (op1 == LEX_STRING && op1 == op2) { //проверка, если оба операнда имеют тип LEX_STRING.
+		op_type = LEX_STRING; // установка типа операции op_type в LEX_STRING.
+		if (op == LEX_PLUS) { //проверка, если оператор op является плюсом.
+			res_type = LEX_STRING; //установка результирующего типа res_type в LEX_STRING.
+		} else if (op == LEX_EQ || op == LEX_NEQ || op == LEX_LSS || op == LEX_GRT) { //проверка, если оператор op является оператором сравнения.
+			res_type = LEX_BOOL;  //установка результирующего типа res_type в LEX_BOOL.
 		} else {
-			sem_error("UNALLOWED OPERATOR FOR VARIABLES OF TYPES");
+			sem_error("UNALLOWED OPERATOR FOR VARIABLES OF TYPES"); //генерация ошибки "Недопустимый оператор для переменных указанных типов".
 		}
 	} else {
-		if (op >= LEX_EQ && op <= LEX_NEQ) {
-			op_type = LEX_INT;
-			res_type = LEX_BOOL;
-		} else if (op >= LEX_PLUS && op <= LEX_SLASH) {
-			op_type = LEX_INT;
-			res_type = LEX_INT;
-		} else if (op == LEX_OR || op == LEX_AND) {
-			op_type = LEX_BOOL;
-			res_type = LEX_BOOL;
+		if (op >= LEX_EQ && op <= LEX_NEQ) { //проверка, если оператор op является оператором сравнения (равно, не равно, меньше, больше, меньше или равно, больше или равно).
+			op_type = LEX_INT; //установка типа операции op_type в LEX_INT (целочисленное).
+			res_type = LEX_BOOL; //установка результирующего типа res_type в LEX_BOOL (логическое).
+		} else if (op >= LEX_PLUS && op <= LEX_SLASH) { //проверка, если оператор op является арифметическим оператором (плюс, минус, умножить, разделить).
+			op_type = LEX_INT; //установка типа операции op_type в LEX_INT (целочисленное).
+			res_type = LEX_INT; //установка результирующего типа res_type в LEX_INT (целочисленное).
+		} else if (op == LEX_OR || op == LEX_AND) { //проверка, если оператор op является логическим оператором (логическое ИЛИ, логическое И).
+			op_type = LEX_BOOL; //установка типа операции op_type в LEX_BOOL (логическое).
+			res_type = LEX_BOOL; //установка результирующего типа res_type в LEX_BOOL (логическое).
 		}
 	}
 
-	if ((op1 == op2 && op1 == op_type) || (op_type == LEX_BOOL && op1 != LEX_STRING && op2 != LEX_STRING)) {
-		st_lex.push(res_type);
+	if ((op1 == op2 && op1 == op_type) || (op_type == LEX_BOOL && op1 != LEX_STRING && op2 != LEX_STRING)) {//проверка условия, если оба операнда и оператор имеют один и тот же тип, 
+		//или если тип операции является логическим (LEX_BOOL) и оба операнда не являются строками (LEX_STRING).
+		st_lex.push(res_type); //добавление результирующего типа res_type в стек st_lex.
 	} else {
-		sem_error("TYPES DON'T MATCH");
+		sem_error("TYPES DON'T MATCH"); //генерация ошибки "Типы не совпадают".
 	}
 }
 
-void Parser::check_un_oper() {
-	if (st_lex.top() != LEX_INT) {
+void Parser::check_un_oper() { //Эта функция проверяет тип операнда для унарной операции.
+	if (st_lex.top() != LEX_INT) { //Проверяет, если вершина стека st_lex не равна LEX_INT (целочисленный тип)
 		sem_error("WRONG TYPE FOR UNARY OPERATION");
 	}
 }
 
-void Parser::check_not() {
-	type_of_lex type = st_lex.top();
-	if (type != LEX_BOOL) {
+void Parser::check_not() { //Эта функция проверяет тип операнда для операции логического отрицания (NOT).
+	type_of_lex type = st_lex.top(); //Получает тип операнда из вершины стека st_lex.
+	if (type != LEX_BOOL) { //Проверяет, если тип операнда не равен LEX_BOOL (логический тип), то генерируется ошибка "Неверный тип для NOT".
 		sem_error("WRONG TYPE FOR NOT");
 	}
 }
 
-void Parser::eq_type() {
-	type_of_lex oper;
+void Parser::eq_type() { //Эта функция проверяет совпадение типов операндов в операции присваивания.
+	type_of_lex oper; //Получает оператор из вершины стека st_lex.
 	extract(st_lex, oper);
-	if (st_lex.top() != oper && (st_lex.top() != LEX_BOOL || oper != LEX_INT)) {
+	if (st_lex.top() != oper && (st_lex.top() != LEX_BOOL || oper != LEX_INT)) { //Проверяет, если тип вершины стека st_lex не совпадает с оператором oper и (тип вершины стека не равен LEX_BOOL или оператор не равен LEX_INT) 
 		sem_error("TYPES DON'T MATCH IN EQ_TYPE");
 	}
 }
 
-void Parser::eq_bool() {
-	if (st_lex.top() == LEX_BOOL) {
+void Parser::eq_bool() { //Эта функция проверяет, что тип вершины стека st_lex является логическим.
+	if (st_lex.top() == LEX_BOOL) { //Проверяет, если тип вершины стека st_lex равен LEX_BOOL (логический тип), то извлекает вершину стека.
 		st_lex.pop();
 	} else {
 		sem_error("NOT BOOLEAN");
@@ -1260,57 +1189,58 @@ void Parser::eq_bool() {
 }
 
 /* CONVERTATION TO POLIZ */
-void Parser::to_poliz() {
-	int value;
-	while (!st_plus.empty()) {
-		extract(st_plus, value);
-		Poliz.push_back(Lex(POLIZ_ADDRESS, value));
-		Poliz.push_back(Lex(LEX_ID, value));
+void Parser::to_poliz() { //Эта функция преобразует операции плюса и минуса в форму обратной польской записи (Poliz).
+	int value; //Локальная переменная для хранения значения из стека.
+	while (!st_plus.empty()) { //Пока стек st_plus не пуст:
+		extract(st_plus, value); //Извлекает значение из стека st_plus и сохраняет его в переменной value.
+		Poliz.push_back(Lex(POLIZ_ADDRESS, value)); //Добавляет в вектор Poliz операции, соответствующие оператору плюса и присваивания.
+		Poliz.push_back(Lex(LEX_ID, value)); 
 		Poliz.push_back(Lex(LEX_NUM, 1));
 		Poliz.push_back(Lex(LEX_PLUS));
 		Poliz.push_back(Lex(LEX_ASSIGN));
 	}
-	while (!st_minus.empty()) {
-		extract(st_minus, value);
-		Poliz.push_back(Lex(POLIZ_ADDRESS, value));
-		Poliz.push_back(Lex(LEX_ID, value));
-		Poliz.push_back(Lex(LEX_NUM, 1));
-		Poliz.push_back(Lex(LEX_MINUS));
-		Poliz.push_back(Lex(LEX_ASSIGN));
+	while (!st_minus.empty()) { //Пока стек st_minus не пуст:
+		extract(st_minus, value); //Извлекает значение из стека st_minus и сохраняет его в переменной value.
+		Poliz.push_back(Lex(POLIZ_ADDRESS, value)); //В вектор Poliz добавляется лексема POLIZ_ADDRESS, которая указывает на адрес переменной или идентификатора.
+		Poliz.push_back(Lex(LEX_ID, value)); //В вектор Poliz добавляется лексема LEX_ID, которая представляет идентификатор или переменную.
+		Poliz.push_back(Lex(LEX_NUM, 1)); // В вектор Poliz добавляется лексема LEX_NUM со значением 1. Это используется для представления операнда, с которым производится операция минуса.
+		Poliz.push_back(Lex(LEX_MINUS)); //В вектор Poliz добавляется лексема LEX_MINUS, представляющая операцию минуса.
+		Poliz.push_back(Lex(LEX_ASSIGN)); //В вектор Poliz добавляется лексема LEX_ASSIGN, представляющая операцию присваивания. 
+		//Это означает, что результат операции минуса будет присвоен идентификатору или переменной.
 	}
 }
 
 
 /* Execution */
 class Executer {
-	Lex curr;
-	stack<int> args;
-	stack<string> str_consts;
-	stack<type_of_lex> types;
+	Lex curr; //Это объявление переменной curr типа Lex, которая будет использоваться для хранения текущего элемента при выполнении операций.
+	stack<int> args; //Это объявление стека args типа int, который будет использоваться для хранения целочисленных аргументов операций.
+	stack<string> str_consts; //Это объявление стека str_consts типа string, который будет использоваться для хранения строковых констант.
+	stack<type_of_lex> types; //Это объявление стека types типа type_of_lex, который будет использоваться для хранения типов данных.
 
-	void exec_error(string error) {
+	void exec_error(string error) { //Это определение метода exec_error(), который принимает строку error в качестве параметра.
 		cerr << "EXECUTION FAILED: " << error << endl;
-		exit(1);
+		exit(1); //Он выводит сообщение об ошибке на стандартный вывод ошибок (cerr) и прерывает выполнение программы, вызывая exit(1).
 	}
 
 public:
-	void execute(vector<Lex> &poliz);
-	void write();
+	void execute(vector<Lex> &poliz); //Объявление публичного метода execute(), который принимает ссылку на вектор poliz типа vector<Lex>. 
+	void write(); //Объявление публичного метода write(). Этот метод будет использоваться для вывода значений переменных и строковых констант из соответствующих стеков.
 };
 
 void Executer::write() {
-	if (!types.empty()) {
-		type_of_lex tmp;
-		int v;
+	if (!types.empty()) { //Это условие проверяет, что стек types не пуст. Если стек не пуст, то выполняются следующие действия, иначе метод write() завершает свою работу.
+		type_of_lex tmp; //Создается переменная tmp типа type_of_lex, которая будет использоваться для хранения значения из стека types.
+		int v; //Создается переменная v типа int, которая будет использоваться для хранения значения из стека args.
 		string s;
-		extract(types, tmp);
+		extract(types, tmp); //Извлекается значение из вершины стека types и сохраняется в переменной tmp. Это значение представляет тип данных элемента, который будет выводиться.
 		switch(tmp) {
-			case LEX_STRING:
-				extract(str_consts, s);
+			case LEX_STRING: //Если tmp равно LEX_STRING, то выполняется следующая строка.
+				extract(str_consts, s); //Извлекается значение из вершины стека str_consts и сохраняется в переменной s. Это значение представляет строку, которая будет выведена.
 				break;
 
 			case LEX_INT:
-				extract(args, v);
+				extract(args, v); //Извлекается значение из вершины стека args и сохраняется в переменной v. Это значение представляет целое число или логическое значение, которое будет выведено.
 				break;
 
 			case LEX_BOOL:
@@ -1321,13 +1251,13 @@ void Executer::write() {
 				break;
 		}
 
-		write();
+		write(); //Рекурсивный вызов метода write(). Это позволяет выводить значения из стека types в обратном порядке.
 		switch(tmp) {
-			case LEX_STRING:
-				cout << s;
+			case LEX_STRING: //Если tmp равно LEX_STRING, то выполняется следующая строка.
+				cout << s; //Выводится значение строки s на стандартный вывод.
 				break;
 			case LEX_BOOL:
-				v ? cout << "true" : cout << "false";
+				v ? cout << "true" : cout << "false"; //Выводится значение переменной v в виде строки "true", если v равно
   				break;
 
 			case LEX_INT:
